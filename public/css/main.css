@@ -1,0 +1,11 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #eee;
+  font-family: monospace;
+}
+
+h1 {
+  font-family: sans-serif;
+}
