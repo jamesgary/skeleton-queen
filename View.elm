@@ -33,6 +33,9 @@ viewMana model =
         , text (model.mana |> floor |> toString)
         , text " / "
         , text (model.maxMana |> toString)
+        , text " ("
+        , text (model.regenMana |> toString)
+        , text " mana/sec)"
         ]
 
 
