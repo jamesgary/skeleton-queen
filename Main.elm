@@ -31,6 +31,8 @@ init =
       , skeletons = 0
       , time = 0
       , deltaTime = 0
+      , skelManaBurnRate = 0.2
+      , firstFramePassed = False
       }
     , Cmd.none
     )
@@ -43,11 +45,19 @@ update msg model =
             ( spawnSkeleton model, Cmd.none )
 
         Tick time ->
-            ( model
-                |> updateTime time
-                |> regenMana
-            , Cmd.none
-            )
+            if model.firstFramePassed then
+                ( model
+                    |> updateTime time
+                    |> burnMana
+                    |> regenMana
+                , Cmd.none
+                )
+            else
+                ( model
+                    |> updateTime time
+                    |> passFirstFrame
+                , Cmd.none
+                )
 
 
 updateTime : Time.Time -> Model -> Model
@@ -56,6 +66,11 @@ updateTime time model =
         | time = time
         , deltaTime = (time - model.time) / 1000
     }
+
+
+passFirstFrame : Model -> Model
+passFirstFrame model =
+    { model | firstFramePassed = True }
 
 
 spawnSkeleton : Model -> Model
@@ -83,6 +98,14 @@ regenMana : Model -> Model
 regenMana model =
     if model.mana < model.maxMana then
         { model | mana = model.mana + (model.regenMana * model.deltaTime) }
+    else
+        model
+
+
+burnMana : Model -> Model
+burnMana model =
+    if model.mana > 0 then
+        { model | mana = model.mana - (model.skeletons * model.skelManaBurnRate * model.deltaTime) }
     else
         model
 

@@ -34,7 +34,7 @@ viewMana model =
         , text " / "
         , text (model.maxMana |> toString)
         , text " ("
-        , text (model.regenMana |> toString)
+        , text (model.regenMana - (model.skeletons * model.skelManaBurnRate) |> toString)
         , text " mana/sec)"
         ]
 
@@ -44,6 +44,9 @@ viewSkeletons model =
     div []
         [ text "Skeletons: "
         , text (toString model.skeletons)
+        , text " (-"
+        , text (toString (model.skeletons * model.skelManaBurnRate))
+        , text " mana/sec)"
         ]
 
 
