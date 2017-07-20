@@ -9,3 +9,13 @@ html, body {
 h1 {
   font-family: sans-serif;
 }
+
+button, .stats {
+  font-size: 24px;
+}
+
+.stats.stats-debug {
+  color: #ddd;
+  float: right;
+  text-align: right;
+}

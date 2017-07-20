@@ -15,8 +15,14 @@ view model =
             , onClick SpawnSkeleton
             ]
             [ text "Spawn Skeleton" ]
-        , viewMana model
-        , viewSkeletons model
+        , div [ class "stats" ]
+            [ viewMana model
+            , viewSkeletons model
+            ]
+        , div [ class "stats stats-debug" ]
+            [ viewTime model
+            , viewDeltaTime model
+            ]
         ]
 
 
@@ -35,4 +41,20 @@ viewSkeletons model =
     div []
         [ text "Skeletons: "
         , text (toString model.skeletons)
+        ]
+
+
+viewTime : Model -> Html Msg
+viewTime model =
+    div []
+        [ text "Time: "
+        , text (toString model.time)
+        ]
+
+
+viewDeltaTime : Model -> Html Msg
+viewDeltaTime model =
+    div []
+        [ text "DeltaTime: "
+        , text (toString model.deltaTime)
         ]

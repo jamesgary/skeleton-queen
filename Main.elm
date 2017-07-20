@@ -2,7 +2,11 @@ module Main exposing (main)
 
 import Common exposing (..)
 import Html
+import Time
 import View exposing (view)
+
+
+--exposing (Time)
 
 
 skeletonCost =
@@ -23,6 +27,8 @@ init =
     ( { mana = 100
       , maxMana = 100
       , skeletons = 0
+      , time = 0
+      , deltaTime = 0
       }
     , Cmd.none
     )
@@ -33,6 +39,17 @@ update msg model =
     case msg of
         SpawnSkeleton ->
             ( spawnSkeleton model, Cmd.none )
+
+        Tick time ->
+            ( regenMana (updateTime time model), Cmd.none )
+
+
+updateTime : Time.Time -> Model -> Model
+updateTime time model =
+    { model
+        | time = time
+        , deltaTime = time - model.time
+    }
 
 
 spawnSkeleton : Model -> Model
@@ -56,6 +73,14 @@ spawnSkeleton model =
     }
 
 
+regenMana : Model -> Model
+regenMana model =
+    if model.mana < model.maxMana then
+        { model | mana = model.mana + 1 }
+    else
+        model
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch []
+    Time.every (0.25 * Time.second) Tick
