@@ -30,9 +30,9 @@ viewMana : Model -> Html Msg
 viewMana model =
     div []
         [ text "Mana: "
-        , text (toString model.mana)
+        , text (model.mana |> floor |> toString)
         , text " / "
-        , text (toString model.maxMana)
+        , text (model.maxMana |> toString)
         ]
 
 

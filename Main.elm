@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import AnimationFrame
 import Common exposing (..)
 import Html
 import Time
@@ -26,6 +27,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { mana = 100
       , maxMana = 100
+      , regenMana = 4
       , skeletons = 0
       , time = 0
       , deltaTime = 0
@@ -41,14 +43,18 @@ update msg model =
             ( spawnSkeleton model, Cmd.none )
 
         Tick time ->
-            ( regenMana (updateTime time model), Cmd.none )
+            ( model
+                |> updateTime time
+                |> regenMana
+            , Cmd.none
+            )
 
 
 updateTime : Time.Time -> Model -> Model
 updateTime time model =
     { model
         | time = time
-        , deltaTime = time - model.time
+        , deltaTime = (time - model.time) / 1000
     }
 
 
@@ -76,11 +82,12 @@ spawnSkeleton model =
 regenMana : Model -> Model
 regenMana model =
     if model.mana < model.maxMana then
-        { model | mana = model.mana + 1 }
+        { model | mana = model.mana + (model.regenMana * model.deltaTime) }
     else
         model
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every (0.25 * Time.second) Tick
+    --Time.every (0.25 * Time.second) Tick
+    AnimationFrame.times Tick

@@ -4,9 +4,10 @@ import Time
 
 
 type alias Model =
-    { mana : Int
-    , maxMana : Int
-    , skeletons : Int
+    { mana : Float
+    , maxMana : Float
+    , regenMana : Float
+    , skeletons : Float
     , time : Time.Time
     , deltaTime : Time.Time
     }
