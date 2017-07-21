@@ -10,10 +10,6 @@ import View exposing (view)
 --exposing (Time)
 
 
-skeletonCost =
-    10
-
-
 main =
     Html.program
         { init = init
@@ -31,7 +27,9 @@ init =
       , skeletons = 0
       , time = 0
       , deltaTime = 0
-      , skelManaBurnRate = 0.2
+      , manaGenerators = 0
+      , skelManaBurnRate = -0.2
+      , manaGeneratorsGenRate = 1
       , firstFramePassed = False
       }
     , Cmd.none
@@ -44,24 +42,26 @@ update msg model =
         SpawnSkeleton ->
             ( spawnSkeleton model, Cmd.none )
 
+        BuyManaGen ->
+            ( buyManaGen model, Cmd.none )
+
         Tick time ->
             if model.firstFramePassed then
                 ( model
-                    |> updateTime time
-                    |> burnMana
-                    |> regenMana
+                    |> tickTime time
+                    |> tickMana
                 , Cmd.none
                 )
             else
                 ( model
-                    |> updateTime time
+                    |> tickTime time
                     |> passFirstFrame
                 , Cmd.none
                 )
 
 
-updateTime : Time.Time -> Model -> Model
-updateTime time model =
+tickTime : Time.Time -> Model -> Model
+tickTime time model =
     { model
         | time = time
         , deltaTime = (time - model.time) / 1000
@@ -94,10 +94,34 @@ spawnSkeleton model =
     }
 
 
+buyManaGen : Model -> Model
+buyManaGen model =
+    let
+        mana =
+            model.mana
+
+        ( newMana, newManaGens ) =
+            if mana >= manaGenCost then
+                ( mana - manaGenCost, model.manaGenerators + 1 )
+            else
+                ( mana, model.manaGenerators )
+    in
+    { model
+        | manaGenerators = newManaGens
+        , mana = newMana
+    }
+
+
 regenMana : Model -> Model
 regenMana model =
     if model.mana < model.maxMana then
-        { model | mana = model.mana + (model.regenMana * model.deltaTime) }
+        { model
+            | mana =
+                model.mana
+                    + (model.regenMana * model.deltaTime)
+                    + (0.5 * model.manaGenerators * model.deltaTime)
+                    |> min model.maxMana
+        }
     else
         model
 
@@ -105,9 +129,26 @@ regenMana model =
 burnMana : Model -> Model
 burnMana model =
     if model.mana > 0 then
-        { model | mana = model.mana - (model.skeletons * model.skelManaBurnRate * model.deltaTime) }
+        { model | mana = model.mana - skelBurn model |> max 0 }
     else
         model
+
+
+tickMana : Model -> Model
+tickMana model =
+    { model
+        | mana =
+            model.mana
+                + model.deltaTime
+                * totalManaRate model
+                |> clampDown model.maxMana
+    }
+
+
+clampDown : number -> number -> number
+clampDown max num =
+    -- Given a max and num, clamp num between 0 and max
+    clamp 0 max num
 
 
 subscriptions : Model -> Sub Msg
