@@ -4,9 +4,13 @@ import Time
 
 
 type alias Model =
-    { mana : Float
-    , maxMana : Float
-    , regenMana : Float
+    { mana :
+        { max : Float
+        , amt : Float
+        , genRate : Float
+        , genAmt : Float
+        }
+    , baseManaRegen : Float
     , skeletons : Float
     , skelManaBurnRate : Float
     , manaGenerators : Float
@@ -30,14 +34,7 @@ skelBurn model =
 
 remainingMana : Model -> Float
 remainingMana model =
-    model.mana - skelBurn model
-
-
-totalManaRate : Model -> Float
-totalManaRate model =
-    model.regenMana
-        + (model.manaGeneratorsGenRate * model.manaGenerators)
-        + (model.skeletons * model.skelManaBurnRate)
+    model.mana.amt - skelBurn model
 
 
 skeletonCost =

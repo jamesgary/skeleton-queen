@@ -21,9 +21,13 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { mana = 100
-      , maxMana = 100
-      , regenMana = 4
+    ( { mana =
+            { amt = 100
+            , max = 100
+            , genRate = 0
+            , genAmt = 0
+            }
+      , baseManaRegen = 5
       , skeletons = 0
       , time = 0
       , deltaTime = 0
@@ -79,14 +83,20 @@ spawnSkeleton model =
         mana =
             model.mana
 
+        manaAmt =
+            mana.amt
+
         skeletons =
             model.skeletons
 
-        ( newMana, newSkeletons ) =
-            if mana >= skeletonCost then
-                ( mana - skeletonCost, skeletons + 1 )
+        ( newManaAmt, newSkeletons ) =
+            if manaAmt >= skeletonCost then
+                ( manaAmt - skeletonCost, skeletons + 1 )
             else
-                ( mana, skeletons )
+                ( manaAmt, skeletons )
+
+        newMana =
+            { mana | amt = newManaAmt }
     in
     { model
         | skeletons = newSkeletons
@@ -100,11 +110,17 @@ buyManaGen model =
         mana =
             model.mana
 
-        ( newMana, newManaGens ) =
-            if mana >= manaGenCost then
-                ( mana - manaGenCost, model.manaGenerators + 1 )
+        manaAmt =
+            mana.amt
+
+        ( newManaAmt, newManaGens ) =
+            if manaAmt >= manaGenCost then
+                ( manaAmt - manaGenCost, model.manaGenerators + 1 )
             else
-                ( mana, model.manaGenerators )
+                ( manaAmt, model.manaGenerators )
+
+        newMana =
+            { mana | amt = newManaAmt }
     in
     { model
         | manaGenerators = newManaGens
@@ -112,37 +128,30 @@ buyManaGen model =
     }
 
 
-regenMana : Model -> Model
-regenMana model =
-    if model.mana < model.maxMana then
-        { model
-            | mana =
-                model.mana
-                    + (model.regenMana * model.deltaTime)
-                    + (0.5 * model.manaGenerators * model.deltaTime)
-                    |> min model.maxMana
-        }
-    else
-        model
-
-
-burnMana : Model -> Model
-burnMana model =
-    if model.mana > 0 then
-        { model | mana = model.mana - skelBurn model |> max 0 }
-    else
-        model
-
-
 tickMana : Model -> Model
 tickMana model =
-    { model
-        | mana =
+    let
+        mana =
             model.mana
-                + model.deltaTime
-                * totalManaRate model
-                |> clampDown model.maxMana
-    }
+
+        newManaRate =
+            model.baseManaRegen
+                + (model.manaGeneratorsGenRate * model.manaGenerators)
+                + (model.skeletons * model.skelManaBurnRate)
+
+        deltaAmt =
+            model.deltaTime * newManaRate
+
+        newManaAmt =
+            mana.amt + deltaAmt |> clampDown mana.max
+
+        newMana =
+            { mana
+                | amt = newManaAmt
+                , genRate = newManaRate
+            }
+    in
+    { model | mana = newMana }
 
 
 clampDown : number -> number -> number

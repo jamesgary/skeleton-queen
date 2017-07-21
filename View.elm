@@ -39,11 +39,11 @@ viewMana : Model -> Html Msg
 viewMana model =
     div []
         [ text "Mana: "
-        , text (model.mana |> niceInt)
+        , text (model.mana.amt |> niceInt)
         , text " / "
-        , text (model.maxMana |> niceInt)
+        , text (model.mana.max |> niceInt)
         , text " ("
-        , text (totalManaRate model |> niceFloat2)
+        , text (model.mana.genRate |> niceFloat2)
         , text " mana/sec)"
         ]
 
