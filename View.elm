@@ -12,26 +12,60 @@ view : Model -> Html Msg
 view model =
     div [ style [ ( "margin", "20px" ) ] ]
         [ h1 [] [ text "SKELETON QUEEN" ]
-        , button
-            [ style [ ( "margin", "10px 0" ) ]
-            , onClick SpawnSkeleton
-            ]
-            [ text ("Spawn Skeleton (" ++ toString skeletonCost ++ " mana)") ]
+        , btn
+            [ onClick BuyCrystal ]
+            [ text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)") ]
         , text " "
-        , button
-            [ style [ ( "margin", "10px 0" ) ]
-            , onClick BuyManaGen
-            ]
-            [ text ("Buy Mana Gen (" ++ toString manaGenCost ++ " mana)") ]
+        , btn
+            [ onClick BuyFlask ]
+            [ text ("Buy Flask (" ++ toString flaskManaCost ++ " mana)") ]
+        , text " "
         , div [ class "stats" ]
             [ viewMana model
-            , viewSkeletons model
-            , viewManaGenerators model
+            , viewFlasks model
+            , viewCrystals model
+            ]
+        , br [] []
+        , hr [] []
+        , btn
+            [ onClick SpawnSkeleton ]
+            [ text ("Spawn Skeleton (" ++ toString skeletonCost ++ " mana)") ]
+        , div [ class "stats" ]
+            [ viewSkeletons model
             ]
         , div [ class "stats stats-debug" ]
             [ viewTime model
             , viewDeltaTime model
             ]
+        ]
+
+
+btn : List (Attribute msg) -> List (Html msg) -> Html msg
+btn attrs children =
+    button
+        (List.append [ style [ ( "margin", "10px 0" ) ] ] attrs)
+        children
+
+
+viewFlasks : Model -> Html Msg
+viewFlasks model =
+    div []
+        [ text "Flasks: "
+        , text (model.flasks.amt |> niceInt)
+        , text " (+"
+        , text (model.config.flaskStorage * model.flasks.amt |> niceInt)
+        , text " max mana)"
+        ]
+
+
+viewCrystals : Model -> Html Msg
+viewCrystals model =
+    div []
+        [ text "Crystals: "
+        , text (model.crystals.amt |> niceInt)
+        , text " ("
+        , text (model.config.crystalManaPerSec * model.crystals.amt |> niceInt)
+        , text " mana/sec)"
         ]
 
 
@@ -41,9 +75,9 @@ viewMana model =
         [ text "Mana: "
         , text (model.mana.amt |> niceInt)
         , text " / "
-        , text (model.mana.max |> niceInt)
+        , text (model.cache.manaMax |> niceInt)
         , text " ("
-        , text (model.mana.genRate |> niceFloat2)
+        , text (model.cache.manaPerSec |> niceFloat2)
         , text " mana/sec)"
         ]
 
@@ -52,22 +86,11 @@ viewSkeletons : Model -> Html Msg
 viewSkeletons model =
     div []
         [ text "Skeletons: "
-        , text (model.skeletons |> niceInt)
+        , text (model.skel.amt |> niceInt)
         , text " ("
-        , text (model.skeletons * model.skelManaBurnRate |> niceFloat2)
-        , text " mana/sec)"
-        ]
-
-
-viewManaGenerators : Model -> Html Msg
-viewManaGenerators model =
-    div []
-        [ text "ManaGens: "
-        , text (model.manaGenerators |> niceInt)
-
-        --, text " ("
-        --, text (model.regenMana - (model.skeletons * model.skelManaBurnRate) |> niceFloat2)
-        --, text " mana/sec)"
+        , text (model.cache.skelManaBurnPerSec |> niceFloat2)
+        , text " mana/sec) "
+        , btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
         ]
 
 

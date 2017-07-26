@@ -7,9 +7,6 @@ import Time
 import View exposing (view)
 
 
---exposing (Time)
-
-
 main =
     Html.program
         { init = init
@@ -22,19 +19,31 @@ main =
 init : ( Model, Cmd Msg )
 init =
     ( { mana =
-            { amt = 100
-            , max = 100
-            , genRate = 0
-            , genAmt = 0
+            { amt = 50
             }
-      , baseManaRegen = 5
-      , skeletons = 0
+      , skel =
+            { amt = 0
+            }
+      , flasks =
+            { amt = 1
+            }
+      , crystals =
+            { amt = 1
+            }
+      , config =
+            { flaskStorage = 100
+            , crystalManaPerSec = 1
+            , flaskManaStorage = 100
+            }
       , time = 0
       , deltaTime = 0
-      , manaGenerators = 0
-      , skelManaBurnRate = -0.2
-      , manaGeneratorsGenRate = 1
       , firstFramePassed = False
+      , cache =
+            { manaPerSec = 0
+            , skelManaBurnPerSec = 0
+            , manaMax = 100
+            , crystalManaGenPerSec = 0 --?
+            }
       }
     , Cmd.none
     )
@@ -46,13 +55,20 @@ update msg model =
         SpawnSkeleton ->
             ( spawnSkeleton model, Cmd.none )
 
-        BuyManaGen ->
-            ( buyManaGen model, Cmd.none )
+        BuyCrystal ->
+            ( buyCrystal model, Cmd.none )
+
+        BuyFlask ->
+            ( buyFlask model, Cmd.none )
+
+        SellSkeleton ->
+            ( sellSkeleton model, Cmd.none )
 
         Tick time ->
             if model.firstFramePassed then
                 ( model
                     |> tickTime time
+                    |> updateCache
                     |> tickMana
                 , Cmd.none
                 )
@@ -86,26 +102,44 @@ spawnSkeleton model =
         manaAmt =
             mana.amt
 
-        skeletons =
-            model.skeletons
+        skel =
+            model.skel
 
-        ( newManaAmt, newSkeletons ) =
+        skelAmt =
+            skel.amt
+
+        ( newManaAmt, newSkelAmt ) =
             if manaAmt >= skeletonCost then
-                ( manaAmt - skeletonCost, skeletons + 1 )
+                ( manaAmt - skeletonCost, skelAmt + 1 )
             else
-                ( manaAmt, skeletons )
+                ( manaAmt, skelAmt )
 
         newMana =
             { mana | amt = newManaAmt }
+
+        newSkel =
+            { skel | amt = newSkelAmt }
     in
     { model
-        | skeletons = newSkeletons
+        | skel = newSkel
         , mana = newMana
     }
 
 
-buyManaGen : Model -> Model
-buyManaGen model =
+sellSkeleton : Model -> Model
+sellSkeleton model =
+    let
+        skel =
+            model.skel
+
+        newSkel =
+            { skel | amt = skel.amt - 1 }
+    in
+    { model | skel = newSkel }
+
+
+buyCrystal : Model -> Model
+buyCrystal model =
     let
         mana =
             model.mana
@@ -113,17 +147,59 @@ buyManaGen model =
         manaAmt =
             mana.amt
 
-        ( newManaAmt, newManaGens ) =
-            if manaAmt >= manaGenCost then
-                ( manaAmt - manaGenCost, model.manaGenerators + 1 )
+        crystals =
+            model.crystals
+
+        crystalAmt =
+            crystals.amt
+
+        ( newManaAmt, newCrystalAmt ) =
+            if manaAmt >= crystalManaCost then
+                ( manaAmt - crystalManaCost, crystalAmt + 1 )
             else
-                ( manaAmt, model.manaGenerators )
+                ( manaAmt, crystalAmt )
+
+        newCrystals =
+            { crystals | amt = newCrystalAmt }
 
         newMana =
             { mana | amt = newManaAmt }
     in
     { model
-        | manaGenerators = newManaGens
+        | crystals = newCrystals
+        , mana = newMana
+    }
+
+
+buyFlask : Model -> Model
+buyFlask model =
+    let
+        mana =
+            model.mana
+
+        manaAmt =
+            mana.amt
+
+        flasks =
+            model.flasks
+
+        flaskAmt =
+            flasks.amt
+
+        ( newManaAmt, newFlaskAmt ) =
+            if manaAmt >= flaskManaCost then
+                ( manaAmt - flaskManaCost, flaskAmt + 1 )
+            else
+                ( manaAmt, flaskAmt )
+
+        newFlasks =
+            { flasks | amt = newFlaskAmt }
+
+        newMana =
+            { mana | amt = newManaAmt }
+    in
+    { model
+        | flasks = newFlasks
         , mana = newMana
     }
 
@@ -134,24 +210,37 @@ tickMana model =
         mana =
             model.mana
 
-        newManaRate =
-            model.baseManaRegen
-                + (model.manaGeneratorsGenRate * model.manaGenerators)
-                + (model.skeletons * model.skelManaBurnRate)
-
-        deltaAmt =
-            model.deltaTime * newManaRate
-
-        newManaAmt =
-            mana.amt + deltaAmt |> clampDown mana.max
-
         newMana =
             { mana
-                | amt = newManaAmt
-                , genRate = newManaRate
+                | amt = clampDown model.cache.manaMax (mana.amt + (model.deltaTime * model.cache.manaPerSec))
             }
     in
     { model | mana = newMana }
+
+
+updateCache : Model -> Model
+updateCache model =
+    let
+        skelManaBurnPerSec =
+            model.skel.amt * -0.8
+
+        crystalManaGenPerSec =
+            model.crystals.amt * model.config.crystalManaPerSec
+
+        manaPerSec =
+            skelManaBurnPerSec + crystalManaGenPerSec
+
+        manaMax =
+            model.flasks.amt * model.config.flaskManaStorage
+
+        cache =
+            { manaPerSec = manaPerSec
+            , skelManaBurnPerSec = skelManaBurnPerSec
+            , manaMax = manaMax
+            , crystalManaGenPerSec = crystalManaGenPerSec
+            }
+    in
+    { model | cache = cache }
 
 
 clampDown : number -> number -> number
