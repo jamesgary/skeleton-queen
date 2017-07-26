@@ -128,14 +128,17 @@ spawnSkeleton model =
 
 sellSkeleton : Model -> Model
 sellSkeleton model =
-    let
-        skel =
-            model.skel
+    if model.skel.amt > 0 then
+        let
+            skel =
+                model.skel
 
-        newSkel =
-            { skel | amt = skel.amt - 1 }
-    in
-    { model | skel = newSkel }
+            newSkel =
+                { skel | amt = skel.amt - 1 }
+        in
+        { model | skel = newSkel }
+    else
+        model
 
 
 buyCrystal : Model -> Model
