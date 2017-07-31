@@ -90,7 +90,7 @@ viewSkeletons model =
         , text " ("
         , text (model.cache.skelManaBurnPerSec |> niceFloat2)
         , text " mana/sec) "
-        , btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
+        , btn [ onClick SellSkeleton, disabled (not (canSellSkel model)) ] [ text "Destroy 1 Skeleton" ]
         ]
 
 

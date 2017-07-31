@@ -55,3 +55,8 @@ crystalManaCost =
 
 flaskManaCost =
     50
+
+
+canSellSkel : Model -> Bool
+canSellSkel model =
+    model.skel.amt > 0
