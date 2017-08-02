@@ -33,6 +33,10 @@ view model =
         , div [ class "stats" ]
             [ viewSkeletons model
             ]
+        , hr [] []
+        , div [ class "stats" ]
+            [ viewJobs model
+            ]
         , div [ class "stats stats-debug" ]
             [ viewTime model
             , viewDeltaTime model
@@ -42,9 +46,15 @@ view model =
 
 btn : List (Attribute msg) -> List (Html msg) -> Html msg
 btn attrs children =
-    button
-        (List.append [ style [ ( "margin", "10px 0" ) ] ] attrs)
+    a
+        (List.append [ class "btn" ] attrs)
         children
+
+
+
+--button
+--    (List.append [ style [ ( "margin", "10px 0" ) ] ] attrs)
+--    children
 
 
 viewFlasks : Model -> Html Msg
@@ -90,7 +100,38 @@ viewSkeletons model =
         , text " ("
         , text (model.cache.skelManaBurnPerSec |> niceFloat2)
         , text " mana/sec) "
-        , btn [ onClick SellSkeleton, disabled (not (canSellSkel model)) ] [ text "Destroy 1 Skeleton" ]
+        , sellSkelBtn model
+        ]
+
+
+sellSkelBtn : Model -> Html Msg
+sellSkelBtn model =
+    if canSellSkel model then
+        btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
+    else
+        btn [ class "is-disabled" ] [ text "Destroy 1 Skeleton" ]
+
+
+
+--btn [ class "is-disabled" ] [ text "Destroy 1 Skeleton", tooltip "Need a skeleton to sell!" ]
+
+
+viewJobs : Model -> Html Msg
+viewJobs model =
+    div []
+        [ h3 [] [ text "Skeleton Jobs" ]
+        , div []
+            [ text "Freeloaders: "
+            , text (model.skel.freeloaderAmt |> niceInt)
+            ]
+        , div []
+            [ text "Lumberjacks: "
+            , text (model.skel.lumberjackAmt |> niceInt)
+            , text " ("
+            , text "?" --, text (model.cache.skelManaBurnPerSec |> niceFloat2)
+            , text " lumber/sec) "
+            , btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
+            ]
         ]
 
 

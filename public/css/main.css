@@ -1,9 +1,11 @@
+
 html, body {
   margin: 0;
   padding: 0;
   background: #111;
   color: #eee;
   font-family: monospace;
+  user-select: none;
 }
 
 h1 {
@@ -18,4 +20,30 @@ button, .stats {
   color: #ddd;
   float: right;
   text-align: right;
+}
+
+.btn {
+  background: #ddd;
+  border: 1px solid #999;
+  color: black;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-block;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #ccc;
+}
+
+.btn:active {
+  background: #aaa;
+}
+
+.btn.is-disabled {
+  color: #888;
+  cursor: default !important;
+  background: #ddd !important;
 }

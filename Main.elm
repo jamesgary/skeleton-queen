@@ -23,6 +23,8 @@ init =
             }
       , skel =
             { amt = 0
+            , lumberjackAmt = 0
+            , freeloaderAmt = 0
             }
       , flasks =
             { amt = 1
@@ -63,6 +65,9 @@ update msg model =
 
         SellSkeleton ->
             ( sellSkeleton model, Cmd.none )
+
+        AssignLumberjack ->
+            ( assignLumberjack model, Cmd.none )
 
         Tick time ->
             if model.firstFramePassed then
@@ -108,17 +113,17 @@ spawnSkeleton model =
         skelAmt =
             skel.amt
 
-        ( newManaAmt, newSkelAmt ) =
+        ( newManaAmt, newSkelAmt, newFreeloaderAmt ) =
             if manaAmt >= skeletonCost then
-                ( manaAmt - skeletonCost, skelAmt + 1 )
+                ( manaAmt - skeletonCost, skelAmt + 1, skel.freeloaderAmt + 1 )
             else
-                ( manaAmt, skelAmt )
+                ( manaAmt, skelAmt, skel.freeloaderAmt )
 
         newMana =
             { mana | amt = newManaAmt }
 
         newSkel =
-            { skel | amt = newSkelAmt }
+            { skel | amt = newSkelAmt, freeloaderAmt = newFreeloaderAmt }
     in
     { model
         | skel = newSkel
@@ -205,6 +210,24 @@ buyFlask model =
         | flasks = newFlasks
         , mana = newMana
     }
+
+
+assignLumberjack : Model -> Model
+assignLumberjack model =
+    let
+        skel =
+            model.skel
+
+        freeloaderAmt =
+            model.skel.freeloaderAmt
+
+        lumberjackAmt =
+            model.skel.lumberjackAmt
+
+        newSkel =
+            { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
+    in
+    { model | skel = newSkel }
 
 
 tickMana : Model -> Model

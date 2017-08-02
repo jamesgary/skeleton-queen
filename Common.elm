@@ -9,6 +9,8 @@ type alias Model =
         }
     , skel :
         { amt : Float
+        , lumberjackAmt : Float
+        , freeloaderAmt : Float
         }
     , flasks :
         { amt : Float
@@ -38,6 +40,7 @@ type Msg
     | BuyCrystal
     | BuyFlask
     | SellSkeleton
+    | AssignLumberjack
     | Tick Time.Time
 
 
