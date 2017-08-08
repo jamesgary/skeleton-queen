@@ -51,12 +51,6 @@ btn attrs children =
         children
 
 
-
---button
---    (List.append [ style [ ( "margin", "10px 0" ) ] ] attrs)
---    children
-
-
 viewFlasks : Model -> Html Msg
 viewFlasks model =
     div []
@@ -109,11 +103,28 @@ sellSkelBtn model =
     if canSellSkel model then
         btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
     else
-        btn [ class "is-disabled" ] [ text "Destroy 1 Skeleton" ]
+        btn (class "is-disabled" :: tooltip "Need a skeleton to sell!") [ text "Destroy 1 Skeleton" ]
+
+
+tooltip : String -> List (Attribute msg)
+tooltip text =
+    [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
 
 
 
---btn [ class "is-disabled" ] [ text "Destroy 1 Skeleton", tooltip "Need a skeleton to sell!" ]
+--data-balloon="I'm a tooltip." data-balloon-pos="up"
+
+
+actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
+actionBtn isEnabled attrs children =
+    let
+        newAttrs =
+            if isEnabled then
+                class "btn" :: attrs
+            else
+                [ class "btn is-disabled" ]
+    in
+    a newAttrs children
 
 
 viewJobs : Model -> Html Msg
