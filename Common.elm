@@ -4,9 +4,7 @@ import Time
 
 
 type alias Model =
-    { mana :
-        { amt : Float
-        }
+    { manaAmt : Float
     , skel :
         { amt : Float
         , lumberjackAmt : Float

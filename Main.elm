@@ -18,9 +18,7 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { mana =
-            { amt = 50
-            }
+    ( { manaAmt = 50
       , skel =
             { amt = 0
             , lumberjackAmt = 0
@@ -101,11 +99,8 @@ passFirstFrame model =
 spawnSkeleton : Model -> Model
 spawnSkeleton model =
     let
-        mana =
-            model.mana
-
         manaAmt =
-            mana.amt
+            model.manaAmt
 
         skel =
             model.skel
@@ -119,15 +114,12 @@ spawnSkeleton model =
             else
                 ( manaAmt, skelAmt, skel.freeloaderAmt )
 
-        newMana =
-            { mana | amt = newManaAmt }
-
         newSkel =
             { skel | amt = newSkelAmt, freeloaderAmt = newFreeloaderAmt }
     in
     { model
         | skel = newSkel
-        , mana = newMana
+        , manaAmt = newManaAmt
     }
 
 
@@ -149,11 +141,8 @@ sellSkeleton model =
 buyCrystal : Model -> Model
 buyCrystal model =
     let
-        mana =
-            model.mana
-
         manaAmt =
-            mana.amt
+            model.manaAmt
 
         crystals =
             model.crystals
@@ -169,24 +158,18 @@ buyCrystal model =
 
         newCrystals =
             { crystals | amt = newCrystalAmt }
-
-        newMana =
-            { mana | amt = newManaAmt }
     in
     { model
         | crystals = newCrystals
-        , mana = newMana
+        , manaAmt = newManaAmt
     }
 
 
 buyFlask : Model -> Model
 buyFlask model =
     let
-        mana =
-            model.mana
-
         manaAmt =
-            mana.amt
+            model.manaAmt
 
         flasks =
             model.flasks
@@ -202,13 +185,10 @@ buyFlask model =
 
         newFlasks =
             { flasks | amt = newFlaskAmt }
-
-        newMana =
-            { mana | amt = newManaAmt }
     in
     { model
         | flasks = newFlasks
-        , mana = newMana
+        , manaAmt = newManaAmt
     }
 
 
@@ -233,15 +213,10 @@ assignLumberjack model =
 tickMana : Model -> Model
 tickMana model =
     let
-        mana =
-            model.mana
-
-        newMana =
-            { mana
-                | amt = clampDown model.cache.manaMax (mana.amt + (model.deltaTime * model.cache.manaPerSec))
-            }
+        newManaAmt =
+            clampDown model.cache.manaMax (model.manaAmt + (model.deltaTime * model.cache.manaPerSec))
     in
-    { model | mana = newMana }
+    { model | manaAmt = newManaAmt }
 
 
 updateCache : Model -> Model

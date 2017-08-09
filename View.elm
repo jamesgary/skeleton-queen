@@ -77,7 +77,7 @@ viewMana : Model -> Html Msg
 viewMana model =
     div []
         [ text "Mana: "
-        , text (model.mana.amt |> niceInt)
+        , text (model.manaAmt |> niceInt)
         , text " / "
         , text (model.cache.manaMax |> niceInt)
         , text " ("
