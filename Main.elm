@@ -65,6 +65,9 @@ update msg model =
         AssignLumberjack ->
             ( assignLumberjack model, Cmd.none )
 
+        FireLumberjack ->
+            ( fireLumberjack model, Cmd.none )
+
         Tick time ->
             if model.firstFramePassed then
                 ( model
@@ -97,26 +100,26 @@ passFirstFrame model =
 
 spawnSkeleton : Model -> Model
 spawnSkeleton model =
-    let
-        manaAmt =
-            model.manaAmt
+    if canSpawnSkel model then
+        let
+            skel =
+                model.skel
 
-        skel =
-            model.skel
+            newManaAmt =
+                model.manaAmt - skelManaCost
 
-        ( newManaAmt, newFreeloaderAmt ) =
-            if manaAmt >= skelManaCost then
-                ( manaAmt - skelManaCost, skel.freeloaderAmt + 1 )
-            else
-                ( manaAmt, skel.freeloaderAmt )
+            newFreeloaderAmt =
+                skel.freeloaderAmt + 1
 
-        newSkel =
-            { skel | freeloaderAmt = newFreeloaderAmt }
-    in
-    { model
-        | skel = newSkel
-        , manaAmt = newManaAmt
-    }
+            newSkel =
+                { skel | freeloaderAmt = newFreeloaderAmt }
+        in
+        { model
+            | skel = newSkel
+            , manaAmt = newManaAmt
+        }
+    else
+        model
 
 
 sellSkeleton : Model -> Model
@@ -139,65 +142,80 @@ sellSkeleton model =
 
 buyCrystal : Model -> Model
 buyCrystal model =
-    let
-        manaAmt =
-            model.manaAmt
+    if canBuyCrystal model then
+        let
+            newManaAmt =
+                model.manaAmt - crystalManaCost
 
-        crystalsAmt =
-            model.crystalsAmt
-
-        ( newManaAmt, newCrystalsAmt ) =
-            if manaAmt >= crystalManaCost then
-                ( manaAmt - crystalManaCost, crystalsAmt + 1 )
-            else
-                ( manaAmt, crystalsAmt )
-    in
-    { model
-        | crystalsAmt = newCrystalsAmt
-        , manaAmt = newManaAmt
-    }
+            newCrystalsAmt =
+                model.crystalsAmt + 1
+        in
+        { model
+            | crystalsAmt = newCrystalsAmt
+            , manaAmt = newManaAmt
+        }
+    else
+        model
 
 
 buyFlask : Model -> Model
 buyFlask model =
-    let
-        manaAmt =
-            model.manaAmt
+    if canBuyFlask model then
+        let
+            newManaAmt =
+                model.manaAmt - flaskManaCost
 
-        flasksAmt =
-            model.flasksAmt
-
-        ( newManaAmt, newFlasksAmt ) =
-            if manaAmt >= flaskManaCost then
-                ( manaAmt - flaskManaCost, flasksAmt + 1 )
-            else
-                ( manaAmt, flasksAmt )
-    in
-    { model
-        | flasksAmt = newFlasksAmt
-        , manaAmt = newManaAmt
-    }
+            newFlasksAmt =
+                model.flasksAmt + 1
+        in
+        { model
+            | flasksAmt = newFlasksAmt
+            , manaAmt = newManaAmt
+        }
+    else
+        model
 
 
 assignLumberjack : Model -> Model
 assignLumberjack model =
-    let
-        skel =
-            model.skel
+    if canAssignLumberjack model then
+        let
+            skel =
+                model.skel
 
-        freeloaderAmt =
-            model.skel.freeloaderAmt
+            freeloaderAmt =
+                model.skel.freeloaderAmt
 
-        lumberjackAmt =
-            model.skel.lumberjackAmt
+            lumberjackAmt =
+                model.skel.lumberjackAmt
 
-        newSkel =
-            if freeloaderAmt > 0 then
+            newSkel =
                 { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
-            else
-                skel
-    in
-    { model | skel = newSkel }
+        in
+        { model | skel = newSkel }
+    else
+        model
+
+
+fireLumberjack : Model -> Model
+fireLumberjack model =
+    if canFireLumberjack model then
+        let
+            skel =
+                model.skel
+
+            freeloaderAmt =
+                model.skel.freeloaderAmt
+
+            lumberjackAmt =
+                model.skel.lumberjackAmt
+
+            newSkel =
+                { skel | freeloaderAmt = freeloaderAmt + 1, lumberjackAmt = lumberjackAmt - 1 }
+        in
+        { model | skel = newSkel }
+    else
+        model
 
 
 tickMana : Model -> Model

@@ -180,6 +180,7 @@ viewJobs model =
             , text (model.cache.lumberGenPerSec |> niceFloat2)
             , text " lumber/sec) "
             , assignLumberjackBtn model
+            , fireLumberjackBtn model
             ]
         ]
 
@@ -190,6 +191,14 @@ assignLumberjackBtn model =
         btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
     else
         btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
+
+
+fireLumberjackBtn : Model -> Html Msg
+fireLumberjackBtn model =
+    if canFireLumberjack model then
+        btn [ onClick FireLumberjack ] [ text "Fire Lumberjack" ]
+    else
+        btn (class "is-disabled" :: tooltip "No lumberjack skeletons to fire!") [ text "Fire Lumberjack" ]
 
 
 viewTime : Model -> Html Msg

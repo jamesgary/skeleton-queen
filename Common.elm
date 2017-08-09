@@ -37,6 +37,7 @@ type Msg
     | BuyFlask
     | SellSkeleton
     | AssignLumberjack
+    | FireLumberjack
     | Tick Time.Time
 
 
@@ -84,3 +85,8 @@ canAssignLumberjack model =
 skelAmt : Model -> Float
 skelAmt model =
     model.skel.freeloaderAmt + model.skel.lumberjackAmt
+
+
+canFireLumberjack : Model -> Bool
+canFireLumberjack model =
+    model.skel.lumberjackAmt > 0
