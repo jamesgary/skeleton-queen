@@ -145,16 +145,12 @@ sellSkelBtn model =
     if canSellSkel model then
         btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
     else
-        btn (class "is-disabled" :: tooltip "Need a skeleton to sell!") [ text "Destroy 1 Skeleton" ]
+        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton to destroy!") [ text "Destroy 1 Skeleton" ]
 
 
 tooltip : String -> List (Attribute msg)
 tooltip text =
     [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
-
-
-
---data-balloon="I'm a tooltip." data-balloon-pos="up"
 
 
 actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg

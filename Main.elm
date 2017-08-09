@@ -40,7 +40,7 @@ init =
             { manaPerSec = 0
             , skelManaBurnPerSec = 0
             , manaMax = 100
-            , crystalManaGenPerSec = 0 --?
+            , crystalManaGenPerSec = 0
             , lumberGenPerSec = 0
             }
       }
@@ -125,13 +125,19 @@ spawnSkeleton model =
 
 sellSkeleton : Model -> Model
 sellSkeleton model =
-    if model.skel.amt > 0 then
+    if canSellSkel model then
         let
             skel =
                 model.skel
 
+            ( newSkelAmt, newFreeloaderAmt ) =
+                ( skel.amt - 1, skel.freeloaderAmt - 1 )
+
             newSkel =
-                { skel | amt = skel.amt - 1 }
+                { skel
+                    | amt = newSkelAmt
+                    , freeloaderAmt = newFreeloaderAmt
+                }
         in
         { model | skel = newSkel }
     else

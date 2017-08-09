@@ -59,7 +59,7 @@ flaskManaCost =
 
 canSellSkel : Model -> Bool
 canSellSkel model =
-    model.skel.amt > 0
+    model.skel.freeloaderAmt > 0
 
 
 canBuyCrystal : Model -> Bool
