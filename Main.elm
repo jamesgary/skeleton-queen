@@ -24,9 +24,7 @@ init =
             , lumberjackAmt = 0
             , freeloaderAmt = 0
             }
-      , flasks =
-            { amt = 1
-            }
+      , flasksAmt = 1
       , crystals =
             { amt = 1
             }
@@ -171,23 +169,17 @@ buyFlask model =
         manaAmt =
             model.manaAmt
 
-        flasks =
-            model.flasks
+        flasksAmt =
+            model.flasksAmt
 
-        flaskAmt =
-            flasks.amt
-
-        ( newManaAmt, newFlaskAmt ) =
+        ( newManaAmt, newFlasksAmt ) =
             if manaAmt >= flaskManaCost then
-                ( manaAmt - flaskManaCost, flaskAmt + 1 )
+                ( manaAmt - flaskManaCost, flasksAmt + 1 )
             else
-                ( manaAmt, flaskAmt )
-
-        newFlasks =
-            { flasks | amt = newFlaskAmt }
+                ( manaAmt, flasksAmt )
     in
     { model
-        | flasks = newFlasks
+        | flasksAmt = newFlasksAmt
         , manaAmt = newManaAmt
     }
 
@@ -232,7 +224,7 @@ updateCache model =
             skelManaBurnPerSec + crystalManaGenPerSec
 
         manaMax =
-            model.flasks.amt * model.config.flaskManaStorage
+            model.flasksAmt * model.config.flaskManaStorage
 
         cache =
             { manaPerSec = manaPerSec

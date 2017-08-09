@@ -5,13 +5,11 @@ import Time
 
 type alias Model =
     { manaAmt : Float
+    , flasksAmt : Float
     , skel :
         { amt : Float
         , lumberjackAmt : Float
         , freeloaderAmt : Float
-        }
-    , flasks :
-        { amt : Float
         }
     , crystals :
         { amt : Float

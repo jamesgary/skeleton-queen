@@ -55,9 +55,9 @@ viewFlasks : Model -> Html Msg
 viewFlasks model =
     div []
         [ text "Flasks: "
-        , text (model.flasks.amt |> niceInt)
+        , text (model.flasksAmt |> niceInt)
         , text " (+"
-        , text (model.config.flaskStorage * model.flasks.amt |> niceInt)
+        , text (model.config.flaskStorage * model.flasksAmt |> niceInt)
         , text " max mana)"
         ]
 
