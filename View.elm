@@ -21,6 +21,7 @@ view model =
             , viewFlasks model
             , viewCrystals model
             , viewLumber model
+            , viewGold model
             ]
         , br [] []
         , hr [] []
@@ -115,6 +116,17 @@ viewLumber model =
         ]
 
 
+viewGold : Model -> Html Msg
+viewGold model =
+    div []
+        [ text "Gold: "
+        , text (model.goldAmt |> niceInt)
+        , text " ("
+        , text (model.cache.goldGenPerSec |> niceInt)
+        , text " gold/sec)"
+        ]
+
+
 viewMana : Model -> Html Msg
 viewMana model =
     div []
@@ -173,21 +185,27 @@ viewJobs model =
             [ text "Freeloaders: "
             , text (model.skel.freeloaderAmt |> niceInt)
             ]
-        , div []
-            [ text "Lumberjacks: "
-            , text (model.skel.lumberjackAmt |> niceInt)
-            , text " ("
-            , text (model.cache.lumberGenPerSec |> niceFloat2)
-            , text " lumber/sec) "
-            , assignLumberjackBtn model
-            , fireLumberjackBtn model
-            ]
+        , viewLumberjacks model
+        , viewMiners model
+        ]
+
+
+viewLumberjacks : Model -> Html Msg
+viewLumberjacks model =
+    div []
+        [ text "Lumberjacks: "
+        , text (model.skel.lumberjackAmt |> niceInt)
+        , text " ("
+        , text (model.cache.lumberGenPerSec |> niceFloat2)
+        , text " lumber/sec) "
+        , assignLumberjackBtn model
+        , fireLumberjackBtn model
         ]
 
 
 assignLumberjackBtn : Model -> Html Msg
 assignLumberjackBtn model =
-    if canAssignLumberjack model then
+    if canAssignSkel model then
         btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
     else
         btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
@@ -199,6 +217,35 @@ fireLumberjackBtn model =
         btn [ onClick FireLumberjack ] [ text "Fire Lumberjack" ]
     else
         btn (class "is-disabled" :: tooltip "No lumberjack skeletons to fire!") [ text "Fire Lumberjack" ]
+
+
+viewMiners : Model -> Html Msg
+viewMiners model =
+    div []
+        [ text "Miners: "
+        , text (model.skel.minerAmt |> niceInt)
+        , text " ("
+        , text (model.cache.goldGenPerSec |> niceFloat2)
+        , text " gold/sec) "
+        , assignMinerBtn model
+        , fireMinerBtn model
+        ]
+
+
+assignMinerBtn : Model -> Html Msg
+assignMinerBtn model =
+    if canAssignSkel model then
+        btn [ onClick AssignMiner ] [ text "Assign Miner" ]
+    else
+        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Miner" ]
+
+
+fireMinerBtn : Model -> Html Msg
+fireMinerBtn model =
+    if canFireMiner model then
+        btn [ onClick FireMiner ] [ text "Fire Miner" ]
+    else
+        btn (class "is-disabled" :: tooltip "No miner skeletons to fire!") [ text "Fire Miner" ]
 
 
 viewTime : Model -> Html Msg

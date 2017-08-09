@@ -20,17 +20,20 @@ init : ( Model, Cmd Msg )
 init =
     ( { manaAmt = 50
       , skel =
-            { lumberjackAmt = 0
-            , freeloaderAmt = 0
+            { freeloaderAmt = 0
+            , lumberjackAmt = 0
+            , minerAmt = 0
             }
       , flasksAmt = 1
       , crystalsAmt = 1
       , lumberAmt = 0
+      , goldAmt = 0
       , config =
             { flaskStorage = 100
             , crystalManaPerSec = 1
             , flaskManaStorage = 100
             , lumberjackLumberPerSec = 1
+            , minerGoldPerSec = 1
             }
       , time = 0
       , deltaTime = 0
@@ -41,6 +44,7 @@ init =
             , manaMax = 100
             , crystalManaGenPerSec = 0
             , lumberGenPerSec = 0
+            , goldGenPerSec = 0
             }
       }
     , Cmd.none
@@ -68,6 +72,12 @@ update msg model =
         FireLumberjack ->
             ( fireLumberjack model, Cmd.none )
 
+        AssignMiner ->
+            ( assignMiner model, Cmd.none )
+
+        FireMiner ->
+            ( fireMiner model, Cmd.none )
+
         Tick time ->
             if model.firstFramePassed then
                 ( model
@@ -75,6 +85,7 @@ update msg model =
                     |> updateCache
                     |> tickMana
                     |> tickLumber
+                    |> tickGold
                 , Cmd.none
                 )
             else
@@ -178,7 +189,7 @@ buyFlask model =
 
 assignLumberjack : Model -> Model
 assignLumberjack model =
-    if canAssignLumberjack model then
+    if canAssignSkel model then
         let
             skel =
                 model.skel
@@ -191,6 +202,27 @@ assignLumberjack model =
 
             newSkel =
                 { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
+        in
+        { model | skel = newSkel }
+    else
+        model
+
+
+assignMiner : Model -> Model
+assignMiner model =
+    if canAssignSkel model then
+        let
+            skel =
+                model.skel
+
+            freeloaderAmt =
+                model.skel.freeloaderAmt
+
+            minerAmt =
+                model.skel.minerAmt
+
+            newSkel =
+                { skel | freeloaderAmt = freeloaderAmt - 1, minerAmt = minerAmt + 1 }
         in
         { model | skel = newSkel }
     else
@@ -218,6 +250,27 @@ fireLumberjack model =
         model
 
 
+fireMiner : Model -> Model
+fireMiner model =
+    if canFireMiner model then
+        let
+            skel =
+                model.skel
+
+            freeloaderAmt =
+                model.skel.freeloaderAmt
+
+            minerAmt =
+                model.skel.minerAmt
+
+            newSkel =
+                { skel | freeloaderAmt = freeloaderAmt + 1, minerAmt = minerAmt - 1 }
+        in
+        { model | skel = newSkel }
+    else
+        model
+
+
 tickMana : Model -> Model
 tickMana model =
     let
@@ -234,6 +287,15 @@ tickLumber model =
             model.lumberAmt + (model.deltaTime * model.cache.lumberGenPerSec)
     in
     { model | lumberAmt = newLumberAmt }
+
+
+tickGold : Model -> Model
+tickGold model =
+    let
+        newGoldAmt =
+            model.goldAmt + (model.deltaTime * model.cache.goldGenPerSec)
+    in
+    { model | goldAmt = newGoldAmt }
 
 
 updateCache : Model -> Model
@@ -254,12 +316,16 @@ updateCache model =
         lumberGenPerSec =
             model.skel.lumberjackAmt * model.config.lumberjackLumberPerSec
 
+        goldGenPerSec =
+            model.skel.minerAmt * model.config.minerGoldPerSec
+
         cache =
             { manaPerSec = manaPerSec
             , skelManaBurnPerSec = skelManaBurnPerSec
             , manaMax = manaMax
             , crystalManaGenPerSec = crystalManaGenPerSec
             , lumberGenPerSec = lumberGenPerSec
+            , goldGenPerSec = goldGenPerSec
             }
     in
     { model | cache = cache }
