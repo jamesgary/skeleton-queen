@@ -132,7 +132,7 @@ viewSkeletons : Model -> Html Msg
 viewSkeletons model =
     div []
         [ text "Skeletons: "
-        , text (model.skel.amt |> niceInt)
+        , text (skelAmt model |> niceInt)
         , text " ("
         , text (model.cache.skelManaBurnPerSec |> niceFloat2)
         , text " mana/sec) "

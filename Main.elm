@@ -20,8 +20,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { manaAmt = 50
       , skel =
-            { amt = 0
-            , lumberjackAmt = 0
+            { lumberjackAmt = 0
             , freeloaderAmt = 0
             }
       , flasksAmt = 1
@@ -105,17 +104,14 @@ spawnSkeleton model =
         skel =
             model.skel
 
-        skelAmt =
-            skel.amt
-
-        ( newManaAmt, newSkelAmt, newFreeloaderAmt ) =
+        ( newManaAmt, newFreeloaderAmt ) =
             if manaAmt >= skelManaCost then
-                ( manaAmt - skelManaCost, skelAmt + 1, skel.freeloaderAmt + 1 )
+                ( manaAmt - skelManaCost, skel.freeloaderAmt + 1 )
             else
-                ( manaAmt, skelAmt, skel.freeloaderAmt )
+                ( manaAmt, skel.freeloaderAmt )
 
         newSkel =
-            { skel | amt = newSkelAmt, freeloaderAmt = newFreeloaderAmt }
+            { skel | freeloaderAmt = newFreeloaderAmt }
     in
     { model
         | skel = newSkel
@@ -130,14 +126,11 @@ sellSkeleton model =
             skel =
                 model.skel
 
-            ( newSkelAmt, newFreeloaderAmt ) =
-                ( skel.amt - 1, skel.freeloaderAmt - 1 )
+            newFreeloaderAmt =
+                skel.freeloaderAmt - 1
 
             newSkel =
-                { skel
-                    | amt = newSkelAmt
-                    , freeloaderAmt = newFreeloaderAmt
-                }
+                { skel | freeloaderAmt = newFreeloaderAmt }
         in
         { model | skel = newSkel }
     else
@@ -229,7 +222,7 @@ updateCache : Model -> Model
 updateCache model =
     let
         skelManaBurnPerSec =
-            model.skel.amt * -0.8
+            skelAmt model * -0.8
 
         crystalManaGenPerSec =
             model.crystalsAmt * model.config.crystalManaPerSec

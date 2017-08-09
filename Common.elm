@@ -8,9 +8,8 @@ type alias Model =
     , flasksAmt : Float
     , crystalsAmt : Float
     , skel :
-        { amt : Float
+        { freeloaderAmt : Float
         , lumberjackAmt : Float
-        , freeloaderAmt : Float
         }
     , lumberAmt : Float
     , config :
@@ -80,3 +79,8 @@ canSpawnSkel model =
 canAssignLumberjack : Model -> Bool
 canAssignLumberjack model =
     model.skel.freeloaderAmt > 0
+
+
+skelAmt : Model -> Float
+skelAmt model =
+    model.skel.freeloaderAmt + model.skel.lumberjackAmt
