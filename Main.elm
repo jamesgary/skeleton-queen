@@ -25,9 +25,7 @@ init =
             , freeloaderAmt = 0
             }
       , flasksAmt = 1
-      , crystals =
-            { amt = 1
-            }
+      , crystalsAmt = 1
       , config =
             { flaskStorage = 100
             , crystalManaPerSec = 1
@@ -142,23 +140,17 @@ buyCrystal model =
         manaAmt =
             model.manaAmt
 
-        crystals =
-            model.crystals
+        crystalsAmt =
+            model.crystalsAmt
 
-        crystalAmt =
-            crystals.amt
-
-        ( newManaAmt, newCrystalAmt ) =
+        ( newManaAmt, newCrystalsAmt ) =
             if manaAmt >= crystalManaCost then
-                ( manaAmt - crystalManaCost, crystalAmt + 1 )
+                ( manaAmt - crystalManaCost, crystalsAmt + 1 )
             else
-                ( manaAmt, crystalAmt )
-
-        newCrystals =
-            { crystals | amt = newCrystalAmt }
+                ( manaAmt, crystalsAmt )
     in
     { model
-        | crystals = newCrystals
+        | crystalsAmt = newCrystalsAmt
         , manaAmt = newManaAmt
     }
 
@@ -218,7 +210,7 @@ updateCache model =
             model.skel.amt * -0.8
 
         crystalManaGenPerSec =
-            model.crystals.amt * model.config.crystalManaPerSec
+            model.crystalsAmt * model.config.crystalManaPerSec
 
         manaPerSec =
             skelManaBurnPerSec + crystalManaGenPerSec

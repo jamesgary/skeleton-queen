@@ -66,9 +66,9 @@ viewCrystals : Model -> Html Msg
 viewCrystals model =
     div []
         [ text "Crystals: "
-        , text (model.crystals.amt |> niceInt)
+        , text (model.crystalsAmt |> niceInt)
         , text " ("
-        , text (model.config.crystalManaPerSec * model.crystals.amt |> niceInt)
+        , text (model.config.crystalManaPerSec * model.crystalsAmt |> niceInt)
         , text " mana/sec)"
         ]
 

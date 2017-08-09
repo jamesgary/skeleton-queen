@@ -6,13 +6,11 @@ import Time
 type alias Model =
     { manaAmt : Float
     , flasksAmt : Float
+    , crystalsAmt : Float
     , skel :
         { amt : Float
         , lumberjackAmt : Float
         , freeloaderAmt : Float
-        }
-    , crystals :
-        { amt : Float
         }
     , config :
         { flaskStorage : Float
