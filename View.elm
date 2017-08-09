@@ -24,6 +24,7 @@ view model =
             [ viewMana model
             , viewFlasks model
             , viewCrystals model
+            , viewLumber model
             ]
         , br [] []
         , hr [] []
@@ -70,6 +71,17 @@ viewCrystals model =
         , text " ("
         , text (model.config.crystalManaPerSec * model.crystalsAmt |> niceInt)
         , text " mana/sec)"
+        ]
+
+
+viewLumber : Model -> Html Msg
+viewLumber model =
+    div []
+        [ text "Lumber: "
+        , text (model.lumberAmt |> niceInt)
+        , text " ("
+        , text (model.cache.lumberGenPerSec |> niceInt)
+        , text " lumber/sec)"
         ]
 
 
@@ -139,7 +151,7 @@ viewJobs model =
             [ text "Lumberjacks: "
             , text (model.skel.lumberjackAmt |> niceInt)
             , text " ("
-            , text "?" --, text (model.cache.skelManaBurnPerSec |> niceFloat2)
+            , text (model.cache.lumberGenPerSec |> niceFloat2)
             , text " lumber/sec) "
             , btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
             ]

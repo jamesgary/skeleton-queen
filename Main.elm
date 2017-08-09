@@ -26,10 +26,12 @@ init =
             }
       , flasksAmt = 1
       , crystalsAmt = 1
+      , lumberAmt = 0
       , config =
             { flaskStorage = 100
             , crystalManaPerSec = 1
             , flaskManaStorage = 100
+            , lumberjackLumberPerSec = 1
             }
       , time = 0
       , deltaTime = 0
@@ -39,6 +41,7 @@ init =
             , skelManaBurnPerSec = 0
             , manaMax = 100
             , crystalManaGenPerSec = 0 --?
+            , lumberGenPerSec = 0
             }
       }
     , Cmd.none
@@ -69,6 +72,7 @@ update msg model =
                     |> tickTime time
                     |> updateCache
                     |> tickMana
+                    |> tickLumber
                 , Cmd.none
                 )
             else
@@ -203,6 +207,15 @@ tickMana model =
     { model | manaAmt = newManaAmt }
 
 
+tickLumber : Model -> Model
+tickLumber model =
+    let
+        newLumberAmt =
+            model.lumberAmt + (model.deltaTime * model.cache.lumberGenPerSec)
+    in
+    { model | lumberAmt = newLumberAmt }
+
+
 updateCache : Model -> Model
 updateCache model =
     let
@@ -218,11 +231,15 @@ updateCache model =
         manaMax =
             model.flasksAmt * model.config.flaskManaStorage
 
+        lumberGenPerSec =
+            model.skel.lumberjackAmt * model.config.lumberjackLumberPerSec
+
         cache =
             { manaPerSec = manaPerSec
             , skelManaBurnPerSec = skelManaBurnPerSec
             , manaMax = manaMax
             , crystalManaGenPerSec = crystalManaGenPerSec
+            , lumberGenPerSec = lumberGenPerSec
             }
     in
     { model | cache = cache }

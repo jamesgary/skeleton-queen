@@ -12,10 +12,12 @@ type alias Model =
         , lumberjackAmt : Float
         , freeloaderAmt : Float
         }
+    , lumberAmt : Float
     , config :
         { flaskStorage : Float
         , crystalManaPerSec : Float
         , flaskManaStorage : Float
+        , lumberjackLumberPerSec : Float
         }
     , time : Time.Time
     , deltaTime : Time.Time
@@ -25,6 +27,7 @@ type alias Model =
         , manaMax : Float
         , skelManaBurnPerSec : Float
         , crystalManaGenPerSec : Float
+        , lumberGenPerSec : Float
         }
     }
 
