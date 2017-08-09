@@ -12,13 +12,9 @@ view : Model -> Html Msg
 view model =
     div [ style [ ( "margin", "20px" ) ] ]
         [ h1 [] [ text "SKELETON QUEEN" ]
-        , btn
-            [ onClick BuyCrystal ]
-            [ text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)") ]
+        , buyCrystalBtn model
         , text " "
-        , btn
-            [ onClick BuyFlask ]
-            [ text ("Buy Flask (" ++ toString flaskManaCost ++ " mana)") ]
+        , buyFlaskBtn model
         , text " "
         , div [ class "stats" ]
             [ viewMana model
@@ -28,9 +24,7 @@ view model =
             ]
         , br [] []
         , hr [] []
-        , btn
-            [ onClick SpawnSkeleton ]
-            [ text ("Spawn Skeleton (" ++ toString skeletonCost ++ " mana)") ]
+        , spawnSkelBtn model
         , div [ class "stats" ]
             [ viewSkeletons model
             ]
@@ -43,6 +37,42 @@ view model =
             , viewDeltaTime model
             ]
         ]
+
+
+buyCrystalBtn : Model -> Html Msg
+buyCrystalBtn model =
+    let
+        btnText =
+            text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
+    in
+    if canBuyCrystal model then
+        btn [ onClick BuyCrystal ] [ btnText ]
+    else
+        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
+
+
+buyFlaskBtn : Model -> Html Msg
+buyFlaskBtn model =
+    let
+        btnText =
+            text ("Buy Flask (" ++ toString flaskManaCost ++ " mana)")
+    in
+    if canBuyFlask model then
+        btn [ onClick BuyFlask ] [ btnText ]
+    else
+        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
+
+
+spawnSkelBtn : Model -> Html Msg
+spawnSkelBtn model =
+    let
+        btnText =
+            text ("Spawn Skeleton (" ++ toString skelManaCost ++ " mana)")
+    in
+    if canSpawnSkel model then
+        btn [ onClick SpawnSkeleton ] [ btnText ]
+    else
+        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
 
 
 btn : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -153,9 +183,17 @@ viewJobs model =
             , text " ("
             , text (model.cache.lumberGenPerSec |> niceFloat2)
             , text " lumber/sec) "
-            , btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
+            , assignLumberjackBtn model
             ]
         ]
+
+
+assignLumberjackBtn : Model -> Html Msg
+assignLumberjackBtn model =
+    if canAssignLumberjack model then
+        btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
+    else
+        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
 
 
 viewTime : Model -> Html Msg

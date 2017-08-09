@@ -109,8 +109,8 @@ spawnSkeleton model =
             skel.amt
 
         ( newManaAmt, newSkelAmt, newFreeloaderAmt ) =
-            if manaAmt >= skeletonCost then
-                ( manaAmt - skeletonCost, skelAmt + 1, skel.freeloaderAmt + 1 )
+            if manaAmt >= skelManaCost then
+                ( manaAmt - skelManaCost, skelAmt + 1, skel.freeloaderAmt + 1 )
             else
                 ( manaAmt, skelAmt, skel.freeloaderAmt )
 
@@ -193,7 +193,10 @@ assignLumberjack model =
             model.skel.lumberjackAmt
 
         newSkel =
-            { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
+            if freeloaderAmt > 0 then
+                { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
+            else
+                skel
     in
     { model | skel = newSkel }
 

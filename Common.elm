@@ -41,7 +41,7 @@ type Msg
     | Tick Time.Time
 
 
-skeletonCost =
+skelManaCost =
     10
 
 
@@ -60,3 +60,23 @@ flaskManaCost =
 canSellSkel : Model -> Bool
 canSellSkel model =
     model.skel.amt > 0
+
+
+canBuyCrystal : Model -> Bool
+canBuyCrystal model =
+    model.manaAmt > crystalManaCost
+
+
+canBuyFlask : Model -> Bool
+canBuyFlask model =
+    model.manaAmt > flaskManaCost
+
+
+canSpawnSkel : Model -> Bool
+canSpawnSkel model =
+    model.manaAmt > skelManaCost
+
+
+canAssignLumberjack : Model -> Bool
+canAssignLumberjack model =
+    model.skel.freeloaderAmt > 0
