@@ -9,9 +9,9 @@ type alias Model =
     , crystalsAmt : Float
     , lumberAmt : Float
     , goldAmt : Float
+    , freeloaderAmt : Float
     , skel :
-        { freeloaderAmt : Float
-        , lumberjackAmt : Float
+        { lumberjackAmt : Float
         , minerAmt : Float
         }
     , config :
@@ -40,11 +40,14 @@ type Msg
     | BuyCrystal
     | BuyFlask
     | SellSkeleton
-    | AssignLumberjack
-    | FireLumberjack
-    | AssignMiner
-    | FireMiner
+    | Assign Job
+    | Fire Job
     | Tick Time.Time
+
+
+type Job
+    = Lumberjack
+    | Miner
 
 
 skelManaCost =
@@ -65,7 +68,7 @@ flaskManaCost =
 
 canSellSkel : Model -> Bool
 canSellSkel model =
-    model.skel.freeloaderAmt > 0
+    model.freeloaderAmt > 0
 
 
 canBuyCrystal : Model -> Bool
@@ -85,12 +88,13 @@ canSpawnSkel model =
 
 skelAmt : Model -> Float
 skelAmt model =
-    model.skel.freeloaderAmt + model.skel.lumberjackAmt
+    -- TODO: REFACTOR
+    model.freeloaderAmt + model.skel.lumberjackAmt + model.skel.minerAmt
 
 
 canAssignSkel : Model -> Bool
 canAssignSkel model =
-    model.skel.freeloaderAmt > 0
+    model.freeloaderAmt > 0
 
 
 canFireLumberjack : Model -> Bool

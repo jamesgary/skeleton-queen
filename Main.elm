@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (..)
 
 import AnimationFrame
 import Common exposing (..)
@@ -19,9 +19,9 @@ main =
 init : ( Model, Cmd Msg )
 init =
     ( { manaAmt = 50
+      , freeloaderAmt = 0
       , skel =
-            { freeloaderAmt = 0
-            , lumberjackAmt = 0
+            { lumberjackAmt = 0
             , minerAmt = 0
             }
       , flasksAmt = 1
@@ -66,17 +66,11 @@ update msg model =
         SellSkeleton ->
             ( sellSkeleton model, Cmd.none )
 
-        AssignLumberjack ->
-            ( assignLumberjack model, Cmd.none )
+        Assign job ->
+            ( assignJob job model, Cmd.none )
 
-        FireLumberjack ->
-            ( fireLumberjack model, Cmd.none )
-
-        AssignMiner ->
-            ( assignMiner model, Cmd.none )
-
-        FireMiner ->
-            ( fireMiner model, Cmd.none )
+        Fire job ->
+            ( fireJob job model, Cmd.none )
 
         Tick time ->
             if model.firstFramePassed then
@@ -112,22 +106,9 @@ passFirstFrame model =
 spawnSkeleton : Model -> Model
 spawnSkeleton model =
     if canSpawnSkel model then
-        let
-            skel =
-                model.skel
-
-            newManaAmt =
-                model.manaAmt - skelManaCost
-
-            newFreeloaderAmt =
-                skel.freeloaderAmt + 1
-
-            newSkel =
-                { skel | freeloaderAmt = newFreeloaderAmt }
-        in
         { model
-            | skel = newSkel
-            , manaAmt = newManaAmt
+            | freeloaderAmt = model.freeloaderAmt + 1
+            , manaAmt = model.manaAmt - skelManaCost
         }
     else
         model
@@ -136,17 +117,7 @@ spawnSkeleton model =
 sellSkeleton : Model -> Model
 sellSkeleton model =
     if canSellSkel model then
-        let
-            skel =
-                model.skel
-
-            newFreeloaderAmt =
-                skel.freeloaderAmt - 1
-
-            newSkel =
-                { skel | freeloaderAmt = newFreeloaderAmt }
-        in
-        { model | skel = newSkel }
+        { model | freeloaderAmt = model.freeloaderAmt - 1 }
     else
         model
 
@@ -187,88 +158,62 @@ buyFlask model =
         model
 
 
-assignLumberjack : Model -> Model
-assignLumberjack model =
+assignJob : Job -> Model -> Model
+assignJob job model =
     if canAssignSkel model then
+        -- remove one from freeloaders and add to specified job
         let
-            skel =
-                model.skel
-
-            freeloaderAmt =
-                model.skel.freeloaderAmt
-
-            lumberjackAmt =
-                model.skel.lumberjackAmt
-
-            newSkel =
-                { skel | freeloaderAmt = freeloaderAmt - 1, lumberjackAmt = lumberjackAmt + 1 }
+            newModel =
+                { model | freeloaderAmt = model.freeloaderAmt - 1 }
         in
-        { model | skel = newSkel }
+        addAmtToJob newModel job 1
     else
         model
 
 
-assignMiner : Model -> Model
-assignMiner model =
-    if canAssignSkel model then
+fireJob : Job -> Model -> Model
+fireJob job model =
+    if canFire job model then
+        -- add one to freeloaders and remove from specified job
         let
-            skel =
-                model.skel
-
-            freeloaderAmt =
-                model.skel.freeloaderAmt
-
-            minerAmt =
-                model.skel.minerAmt
-
-            newSkel =
-                { skel | freeloaderAmt = freeloaderAmt - 1, minerAmt = minerAmt + 1 }
+            newModel =
+                { model | freeloaderAmt = model.freeloaderAmt + 1 }
         in
-        { model | skel = newSkel }
+        addAmtToJob newModel job -1
     else
         model
 
 
-fireLumberjack : Model -> Model
-fireLumberjack model =
-    if canFireLumberjack model then
-        let
-            skel =
-                model.skel
+getJobAmt : Model -> Job -> Float
+getJobAmt model job =
+    case job of
+        Lumberjack ->
+            model.skel.lumberjackAmt
 
-            freeloaderAmt =
-                model.skel.freeloaderAmt
-
-            lumberjackAmt =
-                model.skel.lumberjackAmt
-
-            newSkel =
-                { skel | freeloaderAmt = freeloaderAmt + 1, lumberjackAmt = lumberjackAmt - 1 }
-        in
-        { model | skel = newSkel }
-    else
-        model
+        Miner ->
+            model.skel.minerAmt
 
 
-fireMiner : Model -> Model
-fireMiner model =
-    if canFireMiner model then
-        let
-            skel =
-                model.skel
+addAmtToJob : Model -> Job -> Float -> Model
+addAmtToJob model job amt =
+    let
+        skel =
+            model.skel
 
-            freeloaderAmt =
-                model.skel.freeloaderAmt
+        newSkel =
+            case job of
+                Lumberjack ->
+                    { skel | lumberjackAmt = skel.lumberjackAmt + amt }
 
-            minerAmt =
-                model.skel.minerAmt
+                Miner ->
+                    { skel | minerAmt = skel.minerAmt + amt }
+    in
+    { model | skel = newSkel }
 
-            newSkel =
-                { skel | freeloaderAmt = freeloaderAmt + 1, minerAmt = minerAmt - 1 }
-        in
-        { model | skel = newSkel }
-    else
-        model
+
+canFire : Job -> Model -> Bool
+canFire job model =
+    getJobAmt model job > 0
 
 
 tickMana : Model -> Model

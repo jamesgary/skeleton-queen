@@ -183,7 +183,7 @@ viewJobs model =
         [ h3 [] [ text "Skeleton Jobs" ]
         , div []
             [ text "Freeloaders: "
-            , text (model.skel.freeloaderAmt |> niceInt)
+            , text (model.freeloaderAmt |> niceInt)
             ]
         , viewLumberjacks model
         , viewMiners model
@@ -206,7 +206,7 @@ viewLumberjacks model =
 assignLumberjackBtn : Model -> Html Msg
 assignLumberjackBtn model =
     if canAssignSkel model then
-        btn [ onClick AssignLumberjack ] [ text "Assign Lumberjack" ]
+        btn [ onClick (Assign Lumberjack) ] [ text "Assign Lumberjack" ]
     else
         btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
 
@@ -214,7 +214,7 @@ assignLumberjackBtn model =
 fireLumberjackBtn : Model -> Html Msg
 fireLumberjackBtn model =
     if canFireLumberjack model then
-        btn [ onClick FireLumberjack ] [ text "Fire Lumberjack" ]
+        btn [ onClick (Fire Lumberjack) ] [ text "Fire Lumberjack" ]
     else
         btn (class "is-disabled" :: tooltip "No lumberjack skeletons to fire!") [ text "Fire Lumberjack" ]
 
@@ -235,7 +235,7 @@ viewMiners model =
 assignMinerBtn : Model -> Html Msg
 assignMinerBtn model =
     if canAssignSkel model then
-        btn [ onClick AssignMiner ] [ text "Assign Miner" ]
+        btn [ onClick (Assign Miner) ] [ text "Assign Miner" ]
     else
         btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Miner" ]
 
@@ -243,7 +243,7 @@ assignMinerBtn model =
 fireMinerBtn : Model -> Html Msg
 fireMinerBtn model =
     if canFireMiner model then
-        btn [ onClick FireMiner ] [ text "Fire Miner" ]
+        btn [ onClick (Fire Miner) ] [ text "Fire Miner" ]
     else
         btn (class "is-disabled" :: tooltip "No miner skeletons to fire!") [ text "Fire Miner" ]
 
