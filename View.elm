@@ -13,8 +13,8 @@ view : Model -> Html Msg
 view model =
     div [ style [ ( "margin", "20px" ) ] ]
         [ h1 [] [ text "SKELETON QUEEN" ]
+        , buyCrystalBtn model
 
-        --, buyCrystalBtn model
         --, text " "
         --, buyFlaskBtn model
         --, text " "
@@ -98,19 +98,44 @@ viewSkels { stuffStats, cachedTotalOutputForFrame } =
         ]
 
 
+buyCrystalBtn : Model -> Html Msg
+buyCrystalBtn model =
+    let
+        btnText =
+            text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
+    in
+    if canBuy Crystal model then
+        btn [ onClick BuyCrystal ] [ btnText ]
+    else
+        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
+
+
+canBuy : Stuff -> Model -> Bool
+canBuy stuff { stuffStats } =
+    case ED.get stuff stuffStats of
+        Just stat ->
+            canSpend (ED.toList stat.cost) stuffStats
+
+        Nothing ->
+            False
+
+
+canSpend : List ( Stuff, Float ) -> ED.EveryDict Stuff Stat -> Bool
+canSpend stuffCosts stuffStats =
+    List.all
+        (\( stuff, cost ) ->
+            case ED.get stuff stuffStats of
+                Just stat ->
+                    stat.amt >= cost
+
+                Nothing ->
+                    False
+        )
+        stuffCosts
+
+
 
 {-
-   buyCrystalBtn : Model -> Html Msg
-   buyCrystalBtn model =
-       let
-           btnText =
-               text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
-       in
-       if canBuyCrystal model then
-           btn [ onClick BuyCrystal ] [ btnText ]
-       else
-           btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
 
    buyFlaskBtn : Model -> Html Msg
    buyFlaskBtn model =
@@ -134,13 +159,6 @@ viewSkels { stuffStats, cachedTotalOutputForFrame } =
            btn [ onClick SpawnSkeleton ] [ btnText ]
        else
            btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
-
-   btn : List (Attribute msg) -> List (Html msg) -> Html msg
-   btn attrs children =
-       a
-           (List.append [ class "btn" ] attrs)
-           children
 
 
    viewFlasks : Model -> Html Msg
@@ -207,21 +225,7 @@ viewSkels { stuffStats, cachedTotalOutputForFrame } =
            btn (class "is-disabled" :: tooltip "Need a freeloading skeleton to destroy!") [ text "Destroy 1 Skeleton" ]
 
 
-   tooltip : String -> List (Attribute msg)
-   tooltip text =
-       [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
 
-
-   actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
-   actionBtn isEnabled attrs children =
-       let
-           newAttrs =
-               if isEnabled then
-                   class "btn" :: attrs
-               else
-                   [ class "btn is-disabled" ]
-       in
-       a newAttrs children
 
 
    viewJobs : Model -> Html Msg
@@ -325,3 +329,27 @@ niceFloat1 num =
 niceFloat2 : Float -> String
 niceFloat2 num =
     FormatNumber.format { decimals = 2, thousandSeparator = ",", decimalSeparator = "." } num
+
+
+tooltip : String -> List (Attribute msg)
+tooltip text =
+    [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
+
+
+btn : List (Attribute msg) -> List (Html msg) -> Html msg
+btn attrs children =
+    a
+        (List.append [ class "btn" ] attrs)
+        children
+
+
+actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
+actionBtn isEnabled attrs children =
+    let
+        newAttrs =
+            if isEnabled then
+                class "btn" :: attrs
+            else
+                [ class "btn is-disabled" ]
+    in
+    a newAttrs children

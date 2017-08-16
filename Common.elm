@@ -41,6 +41,7 @@ type alias Stat =
 
 type Msg
     = Tick Time.Time
+    | BuyCrystal
 
 
 zs : Stat
@@ -106,3 +107,7 @@ addOutputForFrame deltaTime stuffKey outputAmt stuffStatDict =
                     Just { zs | amt = additionalOutputAmt }
         )
         stuffStatDict
+
+
+crystalManaCost =
+    60

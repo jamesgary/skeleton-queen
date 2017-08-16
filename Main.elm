@@ -31,7 +31,7 @@ init =
                 , ( Crystal
                   , { amt = 1
                     , max = 100
-                    , cost = ED.fromList [ ( Mana, 20 ) ]
+                    , cost = ED.fromList [ ( Mana, crystalManaCost ) ]
                     , outputPerSec = ED.fromList [ ( Mana, 5 ) ]
                     }
                   )
@@ -76,6 +76,9 @@ update msg model =
                     |> passFirstFrame
                 , Cmd.none
                 )
+
+        BuyCrystal ->
+            ( model, Cmd.none )
 
 
 tickTime : Time.Time -> Model -> Model
