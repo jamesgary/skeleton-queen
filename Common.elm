@@ -1,107 +1,108 @@
 module Common exposing (..)
 
+import Dict
+import EveryDict as ED
 import Time
 
 
 type alias Model =
-    { manaAmt : Float
-    , flasksAmt : Float
-    , crystalsAmt : Float
-    , lumberAmt : Float
-    , goldAmt : Float
-    , freeloaderAmt : Float
-    , skel :
-        { lumberjackAmt : Float
-        , minerAmt : Float
-        }
-    , config :
-        { flaskStorage : Float
-        , crystalManaPerSec : Float
-        , flaskManaStorage : Float
-        , lumberjackLumberPerSec : Float
-        , minerGoldPerSec : Float
-        }
+    { stuffStats : ED.EveryDict Stuff Stat
     , time : Time.Time
     , deltaTime : Time.Time
     , firstFramePassed : Bool
-    , cache :
-        { manaPerSec : Float
-        , manaMax : Float
-        , skelManaBurnPerSec : Float
-        , crystalManaGenPerSec : Float
-        , lumberGenPerSec : Float
-        , goldGenPerSec : Float
-        }
+    , cachedTotalOutputForFrame : ED.EveryDict Stuff Float
+    }
+
+
+type Stuff
+    = Mana
+    | Skel
+    | HiredSkel Job
+    | Gold
+    | Wood
+    | Fish
+    | Flask
+    | Crystal
+
+
+type Job
+    = Miner
+    | Lumberjack
+    | Fisher
+
+
+type alias Stat =
+    { amt : Float
+    , max : Float
+    , cost : ED.EveryDict Stuff Float
+    , outputPerSec : ED.EveryDict Stuff Float -- may eventually be just a coefficient with a static config
     }
 
 
 type Msg
-    = SpawnSkeleton
-    | BuyCrystal
-    | BuyFlask
-    | SellSkeleton
-    | Assign Job
-    | Fire Job
-    | Tick Time.Time
+    = Tick Time.Time
 
 
-type Job
-    = Lumberjack
-    | Miner
+zs : Stat
+zs =
+    -- zero stat, for defaults
+    { amt = 0
+    , max = 0
+    , cost = ED.empty
+    , outputPerSec = ED.empty
+    }
 
 
-skelManaCost =
-    10
+updateStuffs : Model -> Model
+updateStuffs ({ deltaTime, stuffStats } as model) =
+    let
+        totalOutputsDict =
+            model.stuffStats
+                -- list of all stats
+                |> ED.values
+                -- list of all output dicts
+                |> List.map .outputPerSec
+                -- merge all outputs together
+                |> List.foldr mergeOutputs ED.empty
+    in
+    { model
+        | stuffStats = addStuffsToStuffsForFrame deltaTime totalOutputsDict stuffStats
+        , cachedTotalOutputForFrame = totalOutputsDict
+    }
 
 
-manaGenCost =
-    50
+mergeOutputs : ED.EveryDict Stuff Float -> ED.EveryDict Stuff Float -> ED.EveryDict Stuff Float
+mergeOutputs stuffOutputDictA stuffOutputDictB =
+    ED.foldl combineOutputs stuffOutputDictA stuffOutputDictB
 
 
-crystalManaCost =
-    20
+combineOutputs : Stuff -> Float -> ED.EveryDict Stuff Float -> ED.EveryDict Stuff Float
+combineOutputs stuff outputAmt stuffOutputDict =
+    ED.update
+        stuff
+        (\maybeAmt -> Just (Maybe.withDefault 0 maybeAmt + outputAmt))
+        stuffOutputDict
 
 
-flaskManaCost =
-    50
+addStuffsToStuffsForFrame : Time.Time -> ED.EveryDict Stuff Float -> ED.EveryDict Stuff Stat -> ED.EveryDict Stuff Stat
+addStuffsToStuffsForFrame deltaTime stuffOutputDict stuffStatDict =
+    ED.foldl (addOutputForFrame deltaTime) stuffStatDict stuffOutputDict
 
 
-canSellSkel : Model -> Bool
-canSellSkel model =
-    model.freeloaderAmt > 0
+addOutputForFrame : Time.Time -> Stuff -> Float -> ED.EveryDict Stuff Stat -> ED.EveryDict Stuff Stat
+addOutputForFrame deltaTime stuffKey outputAmt stuffStatDict =
+    let
+        additionalOutputAmt =
+            deltaTime * outputAmt
+    in
+    ED.update
+        stuffKey
+        (\maybeStat ->
+            case maybeStat of
+                Just stat ->
+                    Just { stat | amt = min stat.max (stat.amt + additionalOutputAmt) }
 
-
-canBuyCrystal : Model -> Bool
-canBuyCrystal model =
-    model.manaAmt > crystalManaCost
-
-
-canBuyFlask : Model -> Bool
-canBuyFlask model =
-    model.manaAmt > flaskManaCost
-
-
-canSpawnSkel : Model -> Bool
-canSpawnSkel model =
-    model.manaAmt > skelManaCost
-
-
-skelAmt : Model -> Float
-skelAmt model =
-    -- TODO: REFACTOR
-    model.freeloaderAmt + model.skel.lumberjackAmt + model.skel.minerAmt
-
-
-canAssignSkel : Model -> Bool
-canAssignSkel model =
-    model.freeloaderAmt > 0
-
-
-canFireLumberjack : Model -> Bool
-canFireLumberjack model =
-    model.skel.lumberjackAmt > 0
-
-
-canFireMiner : Model -> Bool
-canFireMiner model =
-    model.skel.minerAmt > 0
+                Nothing ->
+                    Just { zs | amt = additionalOutputAmt }
+        )
+        stuffStatDict

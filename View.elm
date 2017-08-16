@@ -1,6 +1,7 @@
 module View exposing (view)
 
 import Common exposing (..)
+import EveryDict as ED
 import FormatNumber
 import FormatNumber.Locales exposing (usLocale)
 import Html exposing (..)
@@ -12,240 +13,287 @@ view : Model -> Html Msg
 view model =
     div [ style [ ( "margin", "20px" ) ] ]
         [ h1 [] [ text "SKELETON QUEEN" ]
-        , buyCrystalBtn model
-        , text " "
-        , buyFlaskBtn model
-        , text " "
+
+        --, buyCrystalBtn model
+        --, text " "
+        --, buyFlaskBtn model
+        --, text " "
         , div [ class "stats" ]
             [ viewMana model
-            , viewFlasks model
             , viewCrystals model
-            , viewLumber model
-            , viewGold model
+            , viewSkels model
+
+            --    , viewFlasks model
+            --    , viewCrystals model
+            --    , viewLumber model
+            --    , viewGold model
             ]
-        , br [] []
-        , hr [] []
-        , spawnSkelBtn model
-        , div [ class "stats" ]
-            [ viewSkeletons model
-            ]
-        , hr [] []
-        , div [ class "stats" ]
-            [ viewJobs model
-            ]
-        , div [ class "stats stats-debug" ]
-            [ viewTime model
-            , viewDeltaTime model
-            ]
+
+        --, br [] []
+        --, hr [] []
+        --, spawnSkelBtn model
+        --, div [ class "stats" ]
+        --    [ viewSkeletons model
+        --    ]
+        --, hr [] []
+        --, div [ class "stats" ]
+        --    [ viewJobs model
+        --    ]
+        --, div [ class "stats stats-debug" ]
+        --    [ viewTime model
+        --    , viewDeltaTime model
+        --    ]
         ]
 
 
-buyCrystalBtn : Model -> Html Msg
-buyCrystalBtn model =
+
+-- foo
+
+
+viewMana : Model -> Html Msg
+viewMana { stuffStats, cachedTotalOutputForFrame } =
     let
-        btnText =
-            text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
+        manaStats =
+            Maybe.withDefault zs (ED.get Mana stuffStats)
+
+        manaPerSec =
+            Maybe.withDefault 0 (ED.get Mana cachedTotalOutputForFrame)
     in
-    if canBuyCrystal model then
-        btn [ onClick BuyCrystal ] [ btnText ]
-    else
-        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
-
-buyFlaskBtn : Model -> Html Msg
-buyFlaskBtn model =
-    let
-        btnText =
-            text ("Buy Flask (" ++ toString flaskManaCost ++ " mana)")
-    in
-    if canBuyFlask model then
-        btn [ onClick BuyFlask ] [ btnText ]
-    else
-        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
-
-spawnSkelBtn : Model -> Html Msg
-spawnSkelBtn model =
-    let
-        btnText =
-            text ("Spawn Skeleton (" ++ toString skelManaCost ++ " mana)")
-    in
-    if canSpawnSkel model then
-        btn [ onClick SpawnSkeleton ] [ btnText ]
-    else
-        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
-
-btn : List (Attribute msg) -> List (Html msg) -> Html msg
-btn attrs children =
-    a
-        (List.append [ class "btn" ] attrs)
-        children
-
-
-viewFlasks : Model -> Html Msg
-viewFlasks model =
     div []
-        [ text "Flasks: "
-        , text (model.flasksAmt |> niceInt)
-        , text " (+"
-        , text (model.config.flaskStorage * model.flasksAmt |> niceInt)
-        , text " max mana)"
+        [ text "Mana: "
+        , text (manaStats.amt |> niceInt)
+        , text " / "
+        , text (manaStats.max |> niceInt)
+        , text " ("
+        , text (manaPerSec |> niceFloat1)
+        , text " mana/sec)"
         ]
 
 
 viewCrystals : Model -> Html Msg
-viewCrystals model =
+viewCrystals { stuffStats, cachedTotalOutputForFrame } =
+    let
+        crystalStats =
+            Maybe.withDefault zs (ED.get Crystal stuffStats)
+    in
     div []
         [ text "Crystals: "
-        , text (model.crystalsAmt |> niceInt)
-        , text " ("
-        , text (model.config.crystalManaPerSec * model.crystalsAmt |> niceInt)
-        , text " mana/sec)"
-        ]
-
-
-viewLumber : Model -> Html Msg
-viewLumber model =
-    div []
-        [ text "Lumber: "
-        , text (model.lumberAmt |> niceInt)
-        , text " ("
-        , text (model.cache.lumberGenPerSec |> niceInt)
-        , text " lumber/sec)"
-        ]
-
-
-viewGold : Model -> Html Msg
-viewGold model =
-    div []
-        [ text "Gold: "
-        , text (model.goldAmt |> niceInt)
-        , text " ("
-        , text (model.cache.goldGenPerSec |> niceInt)
-        , text " gold/sec)"
-        ]
-
-
-viewMana : Model -> Html Msg
-viewMana model =
-    div []
-        [ text "Mana: "
-        , text (model.manaAmt |> niceInt)
+        , text (crystalStats.amt |> niceInt)
         , text " / "
-        , text (model.cache.manaMax |> niceInt)
-        , text " ("
-        , text (model.cache.manaPerSec |> niceFloat2)
-        , text " mana/sec)"
+        , text (crystalStats.max |> niceInt)
         ]
 
 
-viewSkeletons : Model -> Html Msg
-viewSkeletons model =
+viewSkels : Model -> Html Msg
+viewSkels { stuffStats, cachedTotalOutputForFrame } =
+    let
+        skelStats =
+            Maybe.withDefault zs (ED.get Skel stuffStats)
+    in
     div []
         [ text "Skeletons: "
-        , text (skelAmt model |> niceInt)
-        , text " ("
-        , text (model.cache.skelManaBurnPerSec |> niceFloat2)
-        , text " mana/sec) "
-        , sellSkelBtn model
+        , text (skelStats.amt |> niceInt)
+        , text " / "
+        , text (skelStats.max |> niceInt)
         ]
 
 
-sellSkelBtn : Model -> Html Msg
-sellSkelBtn model =
-    if canSellSkel model then
-        btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
-    else
-        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton to destroy!") [ text "Destroy 1 Skeleton" ]
+
+{-
+   buyCrystalBtn : Model -> Html Msg
+   buyCrystalBtn model =
+       let
+           btnText =
+               text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
+       in
+       if canBuyCrystal model then
+           btn [ onClick BuyCrystal ] [ btnText ]
+       else
+           btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
 
 
-tooltip : String -> List (Attribute msg)
-tooltip text =
-    [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
+   buyFlaskBtn : Model -> Html Msg
+   buyFlaskBtn model =
+       let
+           btnText =
+               text ("Buy Flask (" ++ toString flaskManaCost ++ " mana)")
+       in
+       if canBuyFlask model then
+           btn [ onClick BuyFlask ] [ btnText ]
+       else
+           btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
 
 
-actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
-actionBtn isEnabled attrs children =
-    let
-        newAttrs =
-            if isEnabled then
-                class "btn" :: attrs
-            else
-                [ class "btn is-disabled" ]
-    in
-    a newAttrs children
+   spawnSkelBtn : Model -> Html Msg
+   spawnSkelBtn model =
+       let
+           btnText =
+               text ("Spawn Skeleton (" ++ toString skelManaCost ++ " mana)")
+       in
+       if canSpawnSkel model then
+           btn [ onClick SpawnSkeleton ] [ btnText ]
+       else
+           btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
 
 
-viewJobs : Model -> Html Msg
-viewJobs model =
-    div []
-        [ h3 [] [ text "Skeleton Jobs" ]
-        , div []
-            [ text "Freeloaders: "
-            , text (model.freeloaderAmt |> niceInt)
-            ]
-        , viewLumberjacks model
-        , viewMiners model
-        ]
+   btn : List (Attribute msg) -> List (Html msg) -> Html msg
+   btn attrs children =
+       a
+           (List.append [ class "btn" ] attrs)
+           children
 
 
-viewLumberjacks : Model -> Html Msg
-viewLumberjacks model =
-    div []
-        [ text "Lumberjacks: "
-        , text (model.skel.lumberjackAmt |> niceInt)
-        , text " ("
-        , text (model.cache.lumberGenPerSec |> niceFloat2)
-        , text " lumber/sec) "
-        , assignLumberjackBtn model
-        , fireLumberjackBtn model
-        ]
+   viewFlasks : Model -> Html Msg
+   viewFlasks model =
+       div []
+           [ text "Flasks: "
+           , text (model.flasksAmt |> niceInt)
+           , text " (+"
+           , text (model.config.flaskStorage * model.flasksAmt |> niceInt)
+           , text " max mana)"
+           ]
 
 
-assignLumberjackBtn : Model -> Html Msg
-assignLumberjackBtn model =
-    if canAssignSkel model then
-        btn [ onClick (Assign Lumberjack) ] [ text "Assign Lumberjack" ]
-    else
-        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
+   viewCrystals : Model -> Html Msg
+   viewCrystals model =
+       div []
+           [ text "Crystals: "
+           , text (model.crystalsAmt |> niceInt)
+           , text " ("
+           , text (model.config.crystalManaPerSec * model.crystalsAmt |> niceInt)
+           , text " mana/sec)"
+           ]
 
 
-fireLumberjackBtn : Model -> Html Msg
-fireLumberjackBtn model =
-    if canFireLumberjack model then
-        btn [ onClick (Fire Lumberjack) ] [ text "Fire Lumberjack" ]
-    else
-        btn (class "is-disabled" :: tooltip "No lumberjack skeletons to fire!") [ text "Fire Lumberjack" ]
+   viewLumber : Model -> Html Msg
+   viewLumber model =
+       div []
+           [ text "Lumber: "
+           , text (model.lumberAmt |> niceInt)
+           , text " ("
+           , text (model.cache.lumberGenPerSec |> niceInt)
+           , text " lumber/sec)"
+           ]
 
 
-viewMiners : Model -> Html Msg
-viewMiners model =
-    div []
-        [ text "Miners: "
-        , text (model.skel.minerAmt |> niceInt)
-        , text " ("
-        , text (model.cache.goldGenPerSec |> niceFloat2)
-        , text " gold/sec) "
-        , assignMinerBtn model
-        , fireMinerBtn model
-        ]
+   viewGold : Model -> Html Msg
+   viewGold model =
+       div []
+           [ text "Gold: "
+           , text (model.goldAmt |> niceInt)
+           , text " ("
+           , text (model.cache.goldGenPerSec |> niceInt)
+           , text " gold/sec)"
+           ]
 
 
-assignMinerBtn : Model -> Html Msg
-assignMinerBtn model =
-    if canAssignSkel model then
-        btn [ onClick (Assign Miner) ] [ text "Assign Miner" ]
-    else
-        btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Miner" ]
+   viewSkeletons : Model -> Html Msg
+   viewSkeletons model =
+       div []
+           [ text "Skeletons: "
+           , text (skelAmt model |> niceInt)
+           , text " ("
+           , text (model.cache.skelManaBurnPerSec |> niceFloat2)
+           , text " mana/sec) "
+           , sellSkelBtn model
+           ]
 
 
-fireMinerBtn : Model -> Html Msg
-fireMinerBtn model =
-    if canFireMiner model then
-        btn [ onClick (Fire Miner) ] [ text "Fire Miner" ]
-    else
-        btn (class "is-disabled" :: tooltip "No miner skeletons to fire!") [ text "Fire Miner" ]
+   sellSkelBtn : Model -> Html Msg
+   sellSkelBtn model =
+       if canSellSkel model then
+           btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
+       else
+           btn (class "is-disabled" :: tooltip "Need a freeloading skeleton to destroy!") [ text "Destroy 1 Skeleton" ]
+
+
+   tooltip : String -> List (Attribute msg)
+   tooltip text =
+       [ attribute "data-balloon" text, attribute "data-balloon-pos" "up" ]
+
+
+   actionBtn : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
+   actionBtn isEnabled attrs children =
+       let
+           newAttrs =
+               if isEnabled then
+                   class "btn" :: attrs
+               else
+                   [ class "btn is-disabled" ]
+       in
+       a newAttrs children
+
+
+   viewJobs : Model -> Html Msg
+   viewJobs model =
+       div []
+           [ h3 [] [ text "Skeleton Jobs" ]
+           , div []
+               [ text "Freeloaders: "
+               , text (model.freeloaderAmt |> niceInt)
+               ]
+           , viewLumberjacks model
+           , viewMiners model
+           ]
+
+
+   viewLumberjacks : Model -> Html Msg
+   viewLumberjacks model =
+       div []
+           [ text "Lumberjacks: "
+           , text (model.skel.lumberjackAmt |> niceInt)
+           , text " ("
+           , text (model.cache.lumberGenPerSec |> niceFloat2)
+           , text " lumber/sec) "
+           , assignLumberjackBtn model
+           , fireLumberjackBtn model
+           ]
+
+
+   assignLumberjackBtn : Model -> Html Msg
+   assignLumberjackBtn model =
+       if canAssignSkel model then
+           btn [ onClick (Assign Lumberjack) ] [ text "Assign Lumberjack" ]
+       else
+           btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Lumberjack" ]
+
+
+   fireLumberjackBtn : Model -> Html Msg
+   fireLumberjackBtn model =
+       if canFireLumberjack model then
+           btn [ onClick (Fire Lumberjack) ] [ text "Fire Lumberjack" ]
+       else
+           btn (class "is-disabled" :: tooltip "No lumberjack skeletons to fire!") [ text "Fire Lumberjack" ]
+
+
+   viewMiners : Model -> Html Msg
+   viewMiners model =
+       div []
+           [ text "Miners: "
+           , text (model.skel.minerAmt |> niceInt)
+           , text " ("
+           , text (model.cache.goldGenPerSec |> niceFloat2)
+           , text " gold/sec) "
+           , assignMinerBtn model
+           , fireMinerBtn model
+           ]
+
+
+   assignMinerBtn : Model -> Html Msg
+   assignMinerBtn model =
+       if canAssignSkel model then
+           btn [ onClick (Assign Miner) ] [ text "Assign Miner" ]
+       else
+           btn (class "is-disabled" :: tooltip "Need a freeloading skeleton!") [ text "Assign Miner" ]
+
+
+   fireMinerBtn : Model -> Html Msg
+   fireMinerBtn model =
+       if canFireMiner model then
+           btn [ onClick (Fire Miner) ] [ text "Fire Miner" ]
+       else
+           btn (class "is-disabled" :: tooltip "No miner skeletons to fire!") [ text "Fire Miner" ]
+-}
 
 
 viewTime : Model -> Html Msg
