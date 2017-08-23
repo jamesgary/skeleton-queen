@@ -4,6 +4,7 @@ import AnimationFrame
 import Common exposing (..)
 import EveryDict as ED
 import Html
+import Stuff exposing (..)
 import Time
 import View exposing (view)
 
@@ -54,14 +55,14 @@ init =
       , time = 0
       , deltaTime = 0
       , firstFramePassed = False
-      , cachedTotalOutputForFrame = ED.empty
+      , cachedCombinedStuffOutputs = ED.empty
       }
     , Cmd.none
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ stuffStats } as model) =
     case msg of
         Tick time ->
             if model.firstFramePassed then
@@ -77,8 +78,58 @@ update msg model =
                 , Cmd.none
                 )
 
-        BuyCrystal ->
-            ( model, Cmd.none )
+        Buy stuff ->
+            if canBuy stuff stuffStats then
+                ( buyStuff stuff model, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+
+buyStuff : Stuff -> Model -> Model
+buyStuff stuff ({ stuffStats } as model) =
+    let
+        cost =
+            getCostOfStuff stuff model
+
+        newStuffStats =
+            ED.foldl deductCostFromStuffStats stuffStats cost
+
+        stuffStats2 =
+            addAmtToStuffStats stuff newStuffStats
+    in
+    { model | stuffStats = stuffStats2 }
+
+
+addAmtToStuffStats : Stuff -> StuffStats -> StuffStats
+addAmtToStuffStats stuff stuffStats =
+    ED.update
+        stuff
+        (\maybeStat ->
+            case maybeStat of
+                Just stat ->
+                    Just { stat | amt = stat.amt + 1 }
+
+                Nothing ->
+                    Nothing
+        )
+        stuffStats
+
+
+deductCostFromStuffStats : Stuff -> Float -> StuffStats -> StuffStats
+deductCostFromStuffStats stuff amt stuffStats =
+    let
+        stat_ =
+            stat stuff stuffStats
+
+        newStat =
+            { stat_ | amt = stat_.amt - amt }
+    in
+    ED.insert stuff newStat stuffStats
+
+
+getCostOfStuff : Stuff -> Model -> StuffAmts
+getCostOfStuff stuff { stuffStats } =
+    .cost (stat stuff stuffStats)
 
 
 tickTime : Time.Time -> Model -> Model
@@ -86,6 +137,18 @@ tickTime time model =
     { model
         | time = time
         , deltaTime = (time - model.time) / 1000
+    }
+
+
+updateStuffs : Model -> Model
+updateStuffs ({ deltaTime, stuffStats } as model) =
+    let
+        totalOutputsDict =
+            combinedStuffOutputs stuffStats
+    in
+    { model
+        | stuffStats = addStuffsToStuffsForFrame deltaTime totalOutputsDict stuffStats
+        , cachedCombinedStuffOutputs = totalOutputsDict
     }
 
 

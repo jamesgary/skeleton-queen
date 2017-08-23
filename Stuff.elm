@@ -38,9 +38,14 @@ combinedStuffOutputs stuffStats =
         -- list of all stats
         |> ED.values
         -- list of all output dicts
-        |> List.map .outputPerSec
+        |> List.map amtOutputPerSec
         -- merge all outputs together
         |> List.foldr mergeOutputs ED.empty
+
+
+amtOutputPerSec : Stat -> StuffAmts
+amtOutputPerSec ({ amt, outputPerSec } as stat) =
+    ED.map (\stuff outputAmt -> outputAmt * amt) outputPerSec
 
 
 mergeOutputs : StuffAmts -> StuffAmts -> StuffAmts

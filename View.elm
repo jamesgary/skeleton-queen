@@ -7,21 +7,22 @@ import FormatNumber.Locales exposing (usLocale)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Stuff exposing (..)
 
 
 view : Model -> Html Msg
 view model =
     div [ style [ ( "margin", "20px" ) ] ]
         [ h1 [] [ text "SKELETON QUEEN" ]
-        , buyCrystalBtn model
+        , buyBtn Crystal model
 
         --, text " "
         --, buyFlaskBtn model
         --, text " "
         , div [ class "stats" ]
-            [ viewMana model
-            , viewCrystals model
-            , viewSkels model
+            [ viewStatWithRate Mana model
+            , viewStat Crystal model
+            , viewStat Skel model
 
             --    , viewFlasks model
             --    , viewCrystals model
@@ -46,92 +47,54 @@ view model =
         ]
 
 
-
--- foo
-
-
-viewMana : Model -> Html Msg
-viewMana { stuffStats, cachedTotalOutputForFrame } =
+viewStatWithRate : Stuff -> Model -> Html Msg
+viewStatWithRate stuff { stuffStats, cachedCombinedStuffOutputs } =
     let
-        manaStats =
-            Maybe.withDefault zs (ED.get Mana stuffStats)
+        stats =
+            stat stuff stuffStats
 
-        manaPerSec =
-            Maybe.withDefault 0 (ED.get Mana cachedTotalOutputForFrame)
+        outputPerSec =
+            amt stuff cachedCombinedStuffOutputs
     in
     div []
-        [ text "Mana: "
-        , text (manaStats.amt |> niceInt)
+        [ text (nameFromStuff stuff)
+        , text ": "
+        , text (stats.amt |> niceInt)
         , text " / "
-        , text (manaStats.max |> niceInt)
+        , text (stats.max |> niceInt)
         , text " ("
-        , text (manaPerSec |> niceFloat1)
-        , text " mana/sec)"
+        , text (outputPerSec |> niceFloat1)
+        , text " "
+        , text (String.toLower (nameFromStuff stuff))
+        , text "/sec)"
         ]
 
 
-viewCrystals : Model -> Html Msg
-viewCrystals { stuffStats, cachedTotalOutputForFrame } =
+viewStat : Stuff -> Model -> Html Msg
+viewStat stuff { stuffStats } =
     let
-        crystalStats =
-            Maybe.withDefault zs (ED.get Crystal stuffStats)
+        stats =
+            stat stuff stuffStats
     in
     div []
-        [ text "Crystals: "
-        , text (crystalStats.amt |> niceInt)
+        [ text (nameFromStuff stuff)
+        , text ": "
+        , text (stats.amt |> niceInt)
         , text " / "
-        , text (crystalStats.max |> niceInt)
+        , text (stats.max |> niceInt)
         ]
 
 
-viewSkels : Model -> Html Msg
-viewSkels { stuffStats, cachedTotalOutputForFrame } =
-    let
-        skelStats =
-            Maybe.withDefault zs (ED.get Skel stuffStats)
-    in
-    div []
-        [ text "Skeletons: "
-        , text (skelStats.amt |> niceInt)
-        , text " / "
-        , text (skelStats.max |> niceInt)
-        ]
-
-
-buyCrystalBtn : Model -> Html Msg
-buyCrystalBtn model =
+buyBtn : Stuff -> Model -> Html Msg
+buyBtn stuff { stuffStats } =
     let
         btnText =
-            text ("Buy Crystal (" ++ toString crystalManaCost ++ " mana)")
+            text ("Buy " ++ nameFromStuff Crystal ++ " (" ++ toString crystalManaCost ++ " mana)")
     in
-    if canBuy Crystal model then
-        btn [ onClick BuyCrystal ] [ btnText ]
+    if canBuy stuff stuffStats then
+        btn [ onClick (Buy stuff) ] [ btnText ]
     else
-        btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
-
-
-canBuy : Stuff -> Model -> Bool
-canBuy stuff { stuffStats } =
-    case ED.get stuff stuffStats of
-        Just stat ->
-            canSpend (ED.toList stat.cost) stuffStats
-
-        Nothing ->
-            False
-
-
-canSpend : List ( Stuff, Float ) -> ED.EveryDict Stuff Stat -> Bool
-canSpend stuffCosts stuffStats =
-    List.all
-        (\( stuff, cost ) ->
-            case ED.get stuff stuffStats of
-                Just stat ->
-                    stat.amt >= cost
-
-                Nothing ->
-                    False
-        )
-        stuffCosts
+        btn (class "is-disabled" :: tooltip "Not enough mana(TODO: getCostOfStuff)!") [ btnText ]
 
 
 
@@ -161,61 +124,6 @@ canSpend stuffCosts stuffStats =
            btn (class "is-disabled" :: tooltip "Not enough mana!") [ btnText ]
 
 
-   viewFlasks : Model -> Html Msg
-   viewFlasks model =
-       div []
-           [ text "Flasks: "
-           , text (model.flasksAmt |> niceInt)
-           , text " (+"
-           , text (model.config.flaskStorage * model.flasksAmt |> niceInt)
-           , text " max mana)"
-           ]
-
-
-   viewCrystals : Model -> Html Msg
-   viewCrystals model =
-       div []
-           [ text "Crystals: "
-           , text (model.crystalsAmt |> niceInt)
-           , text " ("
-           , text (model.config.crystalManaPerSec * model.crystalsAmt |> niceInt)
-           , text " mana/sec)"
-           ]
-
-
-   viewLumber : Model -> Html Msg
-   viewLumber model =
-       div []
-           [ text "Lumber: "
-           , text (model.lumberAmt |> niceInt)
-           , text " ("
-           , text (model.cache.lumberGenPerSec |> niceInt)
-           , text " lumber/sec)"
-           ]
-
-
-   viewGold : Model -> Html Msg
-   viewGold model =
-       div []
-           [ text "Gold: "
-           , text (model.goldAmt |> niceInt)
-           , text " ("
-           , text (model.cache.goldGenPerSec |> niceInt)
-           , text " gold/sec)"
-           ]
-
-
-   viewSkeletons : Model -> Html Msg
-   viewSkeletons model =
-       div []
-           [ text "Skeletons: "
-           , text (skelAmt model |> niceInt)
-           , text " ("
-           , text (model.cache.skelManaBurnPerSec |> niceFloat2)
-           , text " mana/sec) "
-           , sellSkelBtn model
-           ]
-
 
    sellSkelBtn : Model -> Html Msg
    sellSkelBtn model =
@@ -223,7 +131,6 @@ canSpend stuffCosts stuffStats =
            btn [ onClick SellSkeleton ] [ text "Destroy 1 Skeleton" ]
        else
            btn (class "is-disabled" :: tooltip "Need a freeloading skeleton to destroy!") [ text "Destroy 1 Skeleton" ]
-
 
 
 
